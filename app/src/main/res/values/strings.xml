@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TV Слайдшоу</string>
+    <string name="choose_folder_hint">Выберите папку с фотографиями</string>
+    <string name="choose_ken_burns">Ken Burns</string>
+    <string name="choose_classic">Классика</string>
+    <string name="no_images_found">В выбранной папке нет изображений</string>
+    <string name="speed_value">Скорость: %1$s×</string>
+</resources>
