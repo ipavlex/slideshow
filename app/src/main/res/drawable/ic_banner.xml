@@ -1,15 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="320dp"
     android:height="180dp"
     android:viewportWidth="320"
     android:viewportHeight="180">
 
-    <path
-        android:fillColor="#3D5AFE"
-        android:pathData="M0,0h320v180h-320z" />
+    <path android:pathData="M0,0h320v180h-320z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="0"
+                android:startY="0"
+                android:endX="320"
+                android:endY="180"
+                android:startColor="#3D5AFE"
+                android:endColor="#1A237E" />
+        </aapt:attr>
+    </path>
 
+    <!-- Задний «слайд» (полупрозрачный, смещён влево-вверх) -->
+    <path
+        android:fillColor="#66FFFFFF"
+        android:pathData="M98,10 H182 Q200,10 200,28 V112 Q200,130 182,130 H98 Q80,130 80,112 V28 Q80,10 98,10 Z" />
+
+    <!-- Передний «слайд» (белый) -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M120,60 L200,90 L120,120 Z" />
+        android:pathData="M118,30 H202 Q220,30 220,48 V132 Q220,150 202,150 H118 Q100,150 100,132 V48 Q100,30 118,30 Z" />
+
+    <!-- Кнопка play -->
+    <path
+        android:fillColor="#3D5AFE"
+        android:pathData="M148,72 L176,90 L148,108 Z" />
 </vector>
