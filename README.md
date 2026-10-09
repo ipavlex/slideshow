@@ -66,7 +66,7 @@ APK: `app/build/outputs/apk/.../app-debug.apk` / `app-release.apk`.
 ## Структура проекта
 
 ```
-app/src/main/java/com/pzarubin/tvslideshow/
+app/src/main/java/<package>/
 ├── data/
 │   ├── auth/       # OAuth Яндекс (device-code), хранение токенов
 │   ├── cache/      # файловый кэш (LRU) для Яндекс.Диска
