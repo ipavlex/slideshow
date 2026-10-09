@@ -221,8 +221,8 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 
 ## 8. Этапы (милстоуны)
 
-> Статус: код Фаз 0–1 написан. Сборка/запуск заблокированы отсутствием
-> тулчейна (JDK / Android SDK / Gradle) на этой машине — см. §7.
+> Статус: Фазы 0–5 реализованы. Тулчейн установлен (JDK 17, Android SDK,
+> Gradle wrapper); проект собирается в debug и release APK.
 
 ### Фаза 0 — Каркас (деливерабл: собирающийся APK)
 - [x] Gradle-проект, модуль `app`, манифест под Android TV.
@@ -254,8 +254,9 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 - [ ] client_id реального приложения (сейчас заглушка в `YandexConfig`).
 
 ### Фаза 5 — Полировка и release
-- [ ] Настройки (SettingsActivity): режим, скорость, порядок, рекурсия.
-- [ ] R8, release-подпись, сборка релизного APK.
+- [x] Настройки (SettingsActivity): порядок, перемешивание, длительность, рекурсия.
+- [x] R8 minify + shrinkResources для release (APK ~3.5 МБ).
+- [ ] Собственная релизная подпись (сейчас release подписан debug-ключом).
 
 ---
 

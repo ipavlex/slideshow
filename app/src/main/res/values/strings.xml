@@ -19,4 +19,17 @@
     <string name="yandex_expired">Код истёк, попробуйте ещё раз</string>
     <string name="yandex_error">Ошибка</string>
     <string name="yandex_start_here">Начать слайдшоу здесь</string>
+    <string name="choose_settings">Настройки</string>
+    <string name="settings_title">Настройки</string>
+    <string name="setting_order">Порядок: %1$s</string>
+    <string name="setting_shuffle">Перемешивание: %1$s</string>
+    <string name="setting_duration">Длительность фото: %1$s</string>
+    <string name="setting_recursive">Подпапки: %1$s</string>
+    <string name="order_name">по имени</string>
+    <string name="order_date">по дате</string>
+    <string name="order_random">случайно</string>
+    <string name="setting_on">вкл</string>
+    <string name="setting_off">выкл</string>
+    <string name="duration_auto">Авто</string>
+    <string name="duration_seconds">%1$d с</string>
 </resources>

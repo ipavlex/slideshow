@@ -20,11 +20,13 @@ import androidx.media3.session.MediaSession
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
+import com.pzarubin.tvslideshow.data.settings.SettingsStore
 import com.pzarubin.tvslideshow.data.source.LocalFolderSource
 import com.pzarubin.tvslideshow.data.source.MediaItem
 import com.pzarubin.tvslideshow.data.source.MediaSource
 import com.pzarubin.tvslideshow.data.source.YandexClient
 import com.pzarubin.tvslideshow.data.source.YandexDiskSource
+import com.pzarubin.tvslideshow.domain.PlaylistBuilder
 import com.pzarubin.tvslideshow.domain.SlideMode
 import com.pzarubin.tvslideshow.domain.SlideshowEngine
 import com.pzarubin.tvslideshow.playback.BitmapLoader
@@ -48,6 +50,7 @@ class SlideshowActivity : AppCompatActivity() {
     private var mediaSession: MediaSession? = null
     private var generation = 0
     private lateinit var mode: SlideMode
+    private var photoDuration = 0L
     private var currentItem: MediaItem? = null
 
     // OSD
@@ -65,6 +68,8 @@ class SlideshowActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val settings = SettingsStore(this)
+
         val sourceType = intent.getStringExtra(EXTRA_SOURCE_TYPE) ?: SOURCE_LOCAL
         if (sourceType == SOURCE_YANDEX) {
             val token = TokenStore(this).accessToken
@@ -80,12 +85,13 @@ class SlideshowActivity : AppCompatActivity() {
             @Suppress("DEPRECATION")
             val treeUri = intent.getParcelableExtra<Uri>(EXTRA_TREE_URI)
                 ?: run { finish(); return }
-            source = LocalFolderSource(this, treeUri)
+            source = LocalFolderSource(this, treeUri, settings.recursive)
         }
 
         mode = SlideMode.valueOf(
             intent.getStringExtra(EXTRA_MODE) ?: SlideMode.KEN_BURNS.name
         )
+        photoDuration = settings.photoDurationMs.takeIf { it > 0L } ?: mode.photoDurationMs
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUi()
@@ -119,7 +125,7 @@ class SlideshowActivity : AppCompatActivity() {
         startOsdTicker()
 
         lifecycleScope.launch {
-            val items = source.list()
+            val items = PlaylistBuilder.build(source.list(), settings.order, settings.shuffle)
             if (items.isEmpty()) {
                 Toast.makeText(
                     this@SlideshowActivity,
@@ -143,7 +149,7 @@ class SlideshowActivity : AppCompatActivity() {
     }
 
     private fun startSlideshow(items: List<MediaItem>) {
-        val engine = SlideshowEngine(items, lifecycleScope) { mode.photoDurationMs }
+        val engine = SlideshowEngine(items, lifecycleScope) { photoDuration }
         this.engine = engine
         engine.onSlide = { showSlide(it) }
         engine.onStateChanged = { onEngineStateChanged(it) }
@@ -158,7 +164,7 @@ class SlideshowActivity : AppCompatActivity() {
                 val gen = ++generation
                 val targetW = resources.displayMetrics.widthPixels
                 val targetH = resources.displayMetrics.heightPixels
-                val duration = mode.photoDurationMs
+                val duration = photoDuration
                 lifecycleScope.launch(Dispatchers.IO) {
                     val uri = source.open(item)
                     val bmp = if (uri != null) {

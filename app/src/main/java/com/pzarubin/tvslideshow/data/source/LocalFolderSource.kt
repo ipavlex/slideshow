@@ -8,19 +8,22 @@ import kotlinx.coroutines.withContext
 
 /**
  * Локальный источник: папка, выбранная через SAF (ACTION_OPEN_DOCUMENT_TREE).
- * Читает прямые дочерние файлы; рекурсия подпапок — опция на будущее.
+ * При [recursive] = true обходит и вложенные подпапки.
  */
 class LocalFolderSource(
     private val context: Context,
-    private val treeUri: Uri
+    private val treeUri: Uri,
+    private val recursive: Boolean = false
 ) : MediaSource {
 
     override suspend fun list(): List<MediaItem> = withContext(Dispatchers.IO) {
         val root = DocumentFile.fromTreeUri(context, treeUri)
             ?: return@withContext emptyList()
 
-        root.listFiles()
-            .filter { it.isFile }
+        val docs = mutableListOf<DocumentFile>()
+        collectFiles(root, docs)
+
+        docs.filter { it.isFile }
             .filter { isImage(it.type, it.name) || isVideo(it.type, it.name) }
             .sortedBy { it.name?.lowercase() }
             .map { doc ->
@@ -41,6 +44,15 @@ class LocalFolderSource(
     }
 
     override suspend fun open(item: MediaItem): Uri? = item.uri
+
+    private fun collectFiles(dir: DocumentFile, out: MutableList<DocumentFile>) {
+        for (f in dir.listFiles()) {
+            when {
+                f.isDirectory -> if (recursive) collectFiles(f, out)
+                f.isFile -> out.add(f)
+            }
+        }
+    }
 
     private fun isImage(mime: String?, name: String?): Boolean {
         if (mime?.startsWith("image/") == true) return true

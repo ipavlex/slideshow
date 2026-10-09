@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.domain.SlideMode
 import com.pzarubin.tvslideshow.ui.SlideshowActivity
+import com.pzarubin.tvslideshow.ui.SettingsActivity
 import com.pzarubin.tvslideshow.ui.YandexBrowseActivity
 import com.pzarubin.tvslideshow.ui.YandexLoginActivity
 
@@ -42,6 +43,10 @@ class MainActivity : AppCompatActivity() {
                 YandexLoginActivity::class.java
             }
             startActivity(Intent(this, target))
+        }
+
+        findViewById<Button>(R.id.btn_settings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
     }
 

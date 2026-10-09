@@ -4,55 +4,42 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:background="@color/background">
+    android:background="@color/background"
+    android:padding="40dp">
 
     <TextView
-        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
-        android:text="@string/app_name"
+        android:layout_marginBottom="32dp"
+        android:text="@string/settings_title"
         android:textColor="@color/text_primary"
         android:textSize="34sp" />
 
-    <TextView
-        android:id="@+id/hint"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:text="@string/choose_folder_hint"
-        android:textColor="@color/text_secondary"
-        android:textSize="18sp" />
-
     <Button
-        android:id="@+id/btn_ken_burns"
+        android:id="@+id/setting_order"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:minWidth="360dp"
-        android:text="@string/choose_ken_burns" />
+        android:minWidth="420dp" />
 
     <Button
-        android:id="@+id/btn_classic"
+        android:id="@+id/setting_shuffle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:minWidth="360dp"
-        android:text="@string/choose_classic" />
+        android:minWidth="420dp" />
 
     <Button
-        android:id="@+id/btn_yandex"
+        android:id="@+id/setting_duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:minWidth="360dp"
-        android:text="@string/choose_yandex" />
+        android:minWidth="420dp" />
 
     <Button
-        android:id="@+id/btn_settings"
+        android:id="@+id/setting_recursive"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minWidth="360dp"
-        android:text="@string/choose_settings" />
+        android:minWidth="420dp" />
 
 </LinearLayout>
