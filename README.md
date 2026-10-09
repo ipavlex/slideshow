@@ -58,10 +58,10 @@ YANDEX_CLIENT_ID=ваш_client_id
 ./gradlew assembleRelease    # release-APK (подписан debug-ключом для sideload)
 ```
 
-APK: `app/build/outputs/apk/.../app-debug.apk` / `app-release.apk`.
+APK: `app/build/outputs/apk/.../tvslideshow-<версия>.apk` (например `tvslideshow-0.5.0.apk`).
 
 Установка: скопировать APK на устройство (USB/флешка) и установить, либо
-`adb install app-debug.apk`.
+`adb install tvslideshow-0.5.0.apk`.
 
 ## Структура проекта
 

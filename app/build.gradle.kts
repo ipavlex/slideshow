@@ -1,3 +1,4 @@
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import java.util.Properties
 
 plugins {
@@ -12,6 +13,11 @@ val secrets = Properties().apply {
 }
 val yandexClientId = secrets.getProperty("YANDEX_CLIENT_ID", "")
 
+// Имя приложения (slug) и версия — используются в имени APK.
+val appName = "tvslideshow"
+val appVersionName = "0.5.0"
+val appVersionCode = 5
+
 android {
     namespace = "com.pzarubin.tvslideshow"
     compileSdk = 34
@@ -20,8 +26,8 @@ android {
         applicationId = "com.pzarubin.tvslideshow"
         minSdk = 28
         targetSdk = 34
-        versionCode = 5
-        versionName = "0.5.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         buildConfigField("String", "YANDEX_CLIENT_ID", "\"$yandexClientId\"")
     }
@@ -40,6 +46,13 @@ android {
             )
             // Sideload: подписываем release тем же debug-ключом для удобной установки.
             signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    // Имя APK: <name>-<versionName>.apk (например tvslideshow-0.5.0.apk).
+    applicationVariants.configureEach {
+        for (output in outputs) {
+            (output as BaseVariantOutputImpl).outputFileName = "$appName-$appVersionName.apk"
         }
     }
 

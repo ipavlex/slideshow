@@ -177,7 +177,7 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 - `minSdk 28`, `targetSdk 34`, `compileSdk 34`.
 - Release-подпись: debug-ключ для sideload; позже — собственный keystore.
 - `buildTypes.release { minifyEnabled true (R8) }`.
-- Целевая команда: `./gradlew assembleRelease` → `app/build/outputs/apk/release/app-release.apk`.
+- Целевая команда: `./gradlew assembleRelease` → `app/build/outputs/apk/release/tvslideshow-<версия>.apk` (имя формируется из названия проекта и `versionName`).
 - Флаг `android.leanback` + `LEANBACK_LAUNCHER` intent-filter, `android.hardware.touchscreen` not required.
 - Banner для TV-лаунчера (`android:banner`).
 - Секреты (client_id и т.п.) хранятся в `app/secrets.properties` (gitignored) и читаются на этапе сборки через `buildConfigField` → `BuildConfig`.
