@@ -238,9 +238,9 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 - [x] Базовая навигация пультом: LEFT/RIGHT=слайды, UP/DOWN=скорость, OK=пауза.
 
 ### Фаза 2 — Видео (деливерабл: фото+видео)
-- [ ] Media3 ExoPlayer, `VideoSlideView`.
-- [ ] Переходы фото↔видео, смешанный плейлист.
-- [ ] Перемотка внутри видео.
+- [x] Media3 ExoPlayer, `PlayerView` в `SlideshowView`.
+- [x] Переходы фото↔видео, смешанный плейлист (`LocalFolderSource` + видео).
+- [x] Перемотка внутри видео (MEDIA_REWIND/FAST_FORWARD — seek ±10 с).
 
 ### Фаза 3 — Пульт и скорость (деливерабл: полное управление)
 - [ ] Маппинг кнопок (§5.3).

@@ -20,8 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Полноэкранное слайдшоу. Получает URI дерева (SAF) и режим показа,
- * строит плейлист и запускает движок.
+ * Полноэкранное слайдшоу (фото и видео).
  */
 class SlideshowActivity : AppCompatActivity() {
 
@@ -29,6 +28,7 @@ class SlideshowActivity : AppCompatActivity() {
     private var engine: SlideshowEngine? = null
     private var generation = 0
     private lateinit var mode: SlideMode
+    private var currentItem: MediaItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +43,9 @@ class SlideshowActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUi()
 
-        slideshowView = SlideshowView(this, null, mode)
+        slideshowView = SlideshowView(this, null, mode).apply {
+            onVideoEnded = { engine?.notifyCurrentFinished() }
+        }
         setContentView(slideshowView)
 
         lifecycleScope.launch {
@@ -51,7 +53,7 @@ class SlideshowActivity : AppCompatActivity() {
             if (items.isEmpty()) {
                 Toast.makeText(
                     this@SlideshowActivity,
-                    R.string.no_images_found,
+                    R.string.no_media_found,
                     Toast.LENGTH_LONG
                 ).show()
                 finish()
@@ -62,31 +64,46 @@ class SlideshowActivity : AppCompatActivity() {
     }
 
     private fun startSlideshow(items: List<MediaItem>) {
-        val engine = SlideshowEngine(items, lifecycleScope) { item ->
-            // TODO(Фаза 2): для видео — реальная длительность ролика.
-            if (item.kind == MediaItem.Kind.VIDEO) 0L else mode.photoDurationMs
-        }
+        val engine = SlideshowEngine(items, lifecycleScope) { mode.photoDurationMs }
         this.engine = engine
         engine.onSlide = { showSlide(it) }
+        engine.onStateChanged = { onEngineStateChanged(it) }
         engine.start()
     }
 
     private fun showSlide(item: MediaItem) {
-        val uri = item.uri ?: return
-        val gen = ++generation
-        val targetW = resources.displayMetrics.widthPixels
-        val targetH = resources.displayMetrics.heightPixels
-        val duration = mode.photoDurationMs
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            val bmp = BitmapLoader.decode(contentResolver, uri, targetW, targetH)
-            if (gen == generation && bmp != null) {
-                withContext(Dispatchers.Main) {
-                    slideshowView.showSlide(bmp, duration)
+        currentItem = item
+        when (item.kind) {
+            MediaItem.Kind.PHOTO -> {
+                val uri = item.uri ?: return
+                val gen = ++generation
+                val targetW = resources.displayMetrics.widthPixels
+                val targetH = resources.displayMetrics.heightPixels
+                val duration = mode.photoDurationMs
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val bmp = BitmapLoader.decode(contentResolver, uri, targetW, targetH)
+                    if (gen == generation && bmp != null) {
+                        withContext(Dispatchers.Main) {
+                            slideshowView.showPhoto(bmp, duration)
+                        }
+                    } else {
+                        bmp?.recycle()
+                    }
                 }
-            } else {
-                bmp?.recycle()
             }
+            MediaItem.Kind.VIDEO -> {
+                val uri = item.uri ?: return
+                slideshowView.showVideo(uri)
+            }
+        }
+    }
+
+    private fun onEngineStateChanged(state: SlideshowEngine.State) {
+        if (currentItem?.kind != MediaItem.Kind.VIDEO) return
+        when (state) {
+            SlideshowEngine.State.PLAYING -> slideshowView.resumeVideo()
+            SlideshowEngine.State.PAUSED -> slideshowView.pauseVideo()
+            else -> {}
         }
     }
 
@@ -99,6 +116,8 @@ class SlideshowActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_DOWN -> { e.speedDown(); showSpeedToast(e); true }
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { e.toggle(); true }
+            KeyEvent.KEYCODE_MEDIA_REWIND -> { slideshowView.seekVideoBy(-SEEK_STEP_MS); true }
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> { slideshowView.seekVideoBy(SEEK_STEP_MS); true }
             KeyEvent.KEYCODE_BACK -> { finish(); true }
             else -> super.onKeyDown(keyCode, event)
         }
@@ -133,5 +152,6 @@ class SlideshowActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_TREE_URI = "extra_tree_uri"
         const val EXTRA_MODE = "extra_mode"
+        const val SEEK_STEP_MS = 10_000L
     }
 }

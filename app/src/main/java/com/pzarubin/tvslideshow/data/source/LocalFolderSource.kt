@@ -21,12 +21,16 @@ class LocalFolderSource(
 
         root.listFiles()
             .filter { it.isFile }
-            .filter { isImage(it.type, it.name) }
+            .filter { isImage(it.type, it.name) || isVideo(it.type, it.name) }
             .sortedBy { it.name?.lowercase() }
             .map { doc ->
                 MediaItem(
                     id = doc.uri.toString(),
-                    kind = MediaItem.Kind.PHOTO,
+                    kind = if (isVideo(doc.type, doc.name)) {
+                        MediaItem.Kind.VIDEO
+                    } else {
+                        MediaItem.Kind.PHOTO
+                    },
                     name = doc.name ?: doc.uri.lastPathSegment ?: "?",
                     mimeType = doc.type,
                     sizeBytes = doc.length(),
@@ -38,14 +42,26 @@ class LocalFolderSource(
 
     private fun isImage(mime: String?, name: String?): Boolean {
         if (mime?.startsWith("image/") == true) return true
-        val n = name ?: return false
-        val ext = n.substringAfterLast('.', "").lowercase()
-        return ext in IMAGE_EXTENSIONS
+        return extension(name) in IMAGE_EXTENSIONS
+    }
+
+    private fun isVideo(mime: String?, name: String?): Boolean {
+        if (mime?.startsWith("video/") == true) return true
+        return extension(name) in VIDEO_EXTENSIONS
+    }
+
+    private fun extension(name: String?): String {
+        val n = name ?: return ""
+        return n.substringAfterLast('.', "").lowercase()
     }
 
     private companion object {
         val IMAGE_EXTENSIONS = setOf(
             "jpg", "jpeg", "png", "webp", "heic", "heif", "gif", "bmp"
+        )
+        val VIDEO_EXTENSIONS = setOf(
+            "mp4", "mkv", "webm", "avi", "mov", "m4v", "3gp", "ts", "m2ts",
+            "mpg", "mpeg", "flv", "wmv"
         )
     }
 }

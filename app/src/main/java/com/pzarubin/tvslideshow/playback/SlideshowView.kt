@@ -2,18 +2,31 @@ package com.pzarubin.tvslideshow.playback
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.util.AttributeSet
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
 import com.pzarubin.tvslideshow.domain.SlideMode
 
 /**
- * Контейнер слайдшоу: два слоя (передний/задний) с кроссфейдом между ними.
- * В режиме CLASSIC слои — обычный ImageView (fit), в KEN_BURNS — [KenBurnsView].
+ * Поверхность слайдшоу: фото (кроссфейд двух слоёв) и видео (ExoPlayer).
  *
- * [showSlide] выводит новый слайд поверх текущего и плавно проявляет его.
+ * - [showPhoto] — фото с эффектом режима (Ken Burns / Classic) и кроссфейдом.
+ * - [showVideo] — видео через один переиспользуемый ExoPlayer; по завершении
+ *   вызывается [onVideoEnded], чтобы движок перешёл к следующему слайду.
+ *
+ * Переходы с видео — «резкая» смена (SurfaceView не поддерживает alpha-фейд);
+ * фото↔фото — плавный кроссфейд.
  */
 class SlideshowView @JvmOverloads constructor(
     context: Context,
@@ -21,50 +34,59 @@ class SlideshowView @JvmOverloads constructor(
     private val mode: SlideMode = SlideMode.CLASSIC
 ) : FrameLayout(context, attrs) {
 
-    private val layers = arrayOf(createLayer(), createLayer())
+    private val photoLayers = arrayOf(createPhotoLayer(), createPhotoLayer())
     private val bitmaps = arrayOfNulls<Bitmap>(2)
     private var frontIndex = 0
     private var seq = 0
 
+    private var player: ExoPlayer? = null
+    private val playerView: PlayerView
+
+    var onVideoEnded: (() -> Unit)? = null
+
     init {
-        layers.forEach { addView(it, LayoutParams(MATCH_PARENT, MATCH_PARENT)) }
-        layers[1].alpha = 0f
+        photoLayers.forEach { addView(it, LayoutParams(MATCH_PARENT, MATCH_PARENT)) }
+        photoLayers[1].alpha = 0f
+
+        playerView = PlayerView(context).apply {
+            layoutParams = LayoutParams(MATCH_PARENT, MATCH_PARENT)
+            useController = false
+            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+            visibility = GONE
+        }
+        addView(playerView)
     }
 
-    private fun createLayer(): View = when (mode) {
+    private fun createPhotoLayer(): View = when (mode) {
         SlideMode.CLASSIC -> ImageView(context).apply {
             scaleType = ImageView.ScaleType.FIT_CENTER
         }
         SlideMode.KEN_BURNS -> KenBurnsView(context)
     }
 
-    fun showSlide(bitmap: Bitmap, durationMs: Long) {
+    fun showPhoto(bitmap: Bitmap, durationMs: Long) {
+        stopVideo()
         val mySeq = ++seq
-        // Отменяем предыдущие фейды, чтобы устаревшие end-действия не мешали.
-        layers.forEach { it.animate().cancel() }
+        photoLayers.forEach { it.animate().cancel() }
 
         val incomingIdx = 1 - frontIndex
         val outgoingIdx = frontIndex
-        val incoming = layers[incomingIdx]
-        val outgoing = layers[outgoingIdx]
+        val incoming = photoLayers[incomingIdx]
+        val outgoing = photoLayers[outgoingIdx]
 
-        // Переиспользуем «спрятанный» слой: освобождаем его старый битмап.
         bitmaps[incomingIdx]?.takeIf { !it.isRecycled }?.recycle()
         bitmaps[incomingIdx] = bitmap
-        setLayerBitmap(incoming, bitmap, durationMs)
+        setPhotoBitmap(incoming, bitmap, durationMs)
 
-        // Новый слайд поверх старого: начинаем прозрачным и проявляем.
-        outgoing.alpha = 1f
         incoming.alpha = 0f
         incoming.bringToFront()
-
         incoming.animate()
             .alpha(1f)
             .setDuration(FADE_MS)
             .withEndAction {
                 if (mySeq != seq) return@withEndAction
                 outgoing.alpha = 0f
-                clearLayer(outgoing)
+                clearPhotoLayer(outgoing)
                 bitmaps[outgoingIdx]?.takeIf { !it.isRecycled }?.recycle()
                 bitmaps[outgoingIdx] = null
                 frontIndex = incomingIdx
@@ -72,7 +94,66 @@ class SlideshowView @JvmOverloads constructor(
             .start()
     }
 
-    private fun setLayerBitmap(layer: View, bitmap: Bitmap, durationMs: Long) {
+    fun showVideo(uri: Uri) {
+        // Скрываем фото: при завершении видео следующий слайд появится из чёрного.
+        photoLayers.forEach { it.alpha = 0f }
+        playerView.bringToFront()
+        playerView.visibility = GONE
+
+        val p = ensurePlayer()
+        p.setMediaItem(MediaItem.fromUri(uri))
+        p.prepare()
+        p.playWhenReady = true
+    }
+
+    fun seekVideoBy(deltaMs: Long) {
+        val p = player ?: return
+        if (p.currentMediaItem == null) return
+        val newPos = (p.currentPosition + deltaMs)
+            .coerceIn(0L, p.duration.coerceAtLeast(0L))
+        p.seekTo(newPos)
+    }
+
+    fun pauseVideo() {
+        player?.playWhenReady = false
+    }
+
+    fun resumeVideo() {
+        player?.playWhenReady = true
+    }
+
+    private fun ensurePlayer(): ExoPlayer {
+        if (player == null) {
+            player = ExoPlayer.Builder(context).build().apply {
+                addListener(object : Player.Listener {
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        when (playbackState) {
+                            Player.STATE_READY -> playerView.visibility = VISIBLE
+                            Player.STATE_ENDED -> onVideoFinished()
+                        }
+                    }
+
+                    override fun onPlayerError(error: PlaybackException) {
+                        onVideoFinished()
+                    }
+                })
+            }
+            playerView.player = player
+        }
+        return player!!
+    }
+
+    private fun onVideoFinished() {
+        playerView.visibility = GONE
+        onVideoEnded?.invoke()
+    }
+
+    private fun stopVideo() {
+        player?.stop()
+        playerView.visibility = GONE
+    }
+
+    private fun setPhotoBitmap(layer: View, bitmap: Bitmap, durationMs: Long) {
         when (layer) {
             is ImageView -> layer.setImageBitmap(bitmap)
             is KenBurnsView -> {
@@ -82,7 +163,7 @@ class SlideshowView @JvmOverloads constructor(
         }
     }
 
-    private fun clearLayer(layer: View) {
+    private fun clearPhotoLayer(layer: View) {
         when (layer) {
             is ImageView -> layer.setImageBitmap(null)
             is KenBurnsView -> {
@@ -92,12 +173,13 @@ class SlideshowView @JvmOverloads constructor(
         }
     }
 
-    /** Останавливает анимации и освобождает все битмапы. */
     fun stop() {
-        layers.forEach { it.animate().cancel() }
-        (layers[frontIndex] as? KenBurnsView)?.cancel()
+        photoLayers.forEach { it.animate().cancel() }
+        (photoLayers[frontIndex] as? KenBurnsView)?.cancel()
         bitmaps.forEach { it?.takeIf { b -> !b.isRecycled }?.recycle() }
         bitmaps.fill(null)
+        player?.release()
+        player = null
     }
 
     companion object {

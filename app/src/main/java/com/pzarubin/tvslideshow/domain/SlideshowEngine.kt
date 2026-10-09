@@ -9,9 +9,9 @@ import kotlinx.coroutines.launch
 /**
  * Машина состояний слайдшоу: таймер, перемотка, скорость, цикл.
  *
- * Длительность слайда вычисляется через [durationResolver] (для видео —
- * длительность ролика; для фото — зависит от режима) и делится на
- * множитель скорости.
+ * Для фото длительность вычисляется через [durationResolver] и делится на
+ * множитель скорости. Видео проигрывается до конца и продвигает слайдшоу
+ * через [notifyCurrentFinished].
  */
 class SlideshowEngine(
     private val items: List<MediaItem>,
@@ -68,6 +68,16 @@ class SlideshowEngine(
 
     fun speedDown() = stepSpeed(-1)
 
+    /**
+     * Вызывается извне по завершении текущего видео (или ошибке воспроизведения),
+     * чтобы перейти к следующему слайду.
+     */
+    fun notifyCurrentFinished() {
+        if (state != State.PLAYING) return
+        if (currentItem.kind != MediaItem.Kind.VIDEO) return
+        moveBy(1)
+    }
+
     fun release() {
         tickJob?.cancel()
         tickJob = null
@@ -82,9 +92,10 @@ class SlideshowEngine(
 
     private fun scheduleNext() {
         tickJob?.cancel()
+        tickJob = null
         val item = currentItem
+        if (item.kind == MediaItem.Kind.VIDEO) return  // видео: ждём завершения
         tickJob = scope.launch {
-            // TODO(Фаза 2): для видео ждать завершения ролика, а не таймер.
             val durationMs = durationResolver(item) / speedMultiplier
             delay(durationMs.toLong().coerceAtLeast(250L))
             moveBy(1)
