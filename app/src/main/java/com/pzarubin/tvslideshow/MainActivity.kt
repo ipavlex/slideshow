@@ -6,8 +6,11 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.domain.SlideMode
 import com.pzarubin.tvslideshow.ui.SlideshowActivity
+import com.pzarubin.tvslideshow.ui.YandexBrowseActivity
+import com.pzarubin.tvslideshow.ui.YandexLoginActivity
 
 /**
  * Главный экран: выбор режима и папки.
@@ -31,6 +34,15 @@ class MainActivity : AppCompatActivity() {
             .setOnClickListener { pickFolder(SlideMode.KEN_BURNS) }
         findViewById<Button>(R.id.btn_classic)
             .setOnClickListener { pickFolder(SlideMode.CLASSIC) }
+
+        findViewById<Button>(R.id.btn_yandex).setOnClickListener {
+            val target = if (TokenStore(this).hasToken) {
+                YandexBrowseActivity::class.java
+            } else {
+                YandexLoginActivity::class.java
+            }
+            startActivity(Intent(this, target))
+        }
     }
 
     private fun pickFolder(mode: SlideMode) {

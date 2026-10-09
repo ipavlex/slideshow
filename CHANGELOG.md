@@ -8,8 +8,18 @@
 ## [Unreleased]
 
 ### Планируется
-- Фаза 4: источник Яндекс.Диск (OAuth device-code, кэш).
 - Фаза 5: экран настроек, R8, релизная подпись.
+
+## [0.4.0] — 2026-10-09
+
+### Добавлено
+- Источник Яндекс.Диск: OAuth device-code (`YandexAuth`, `YandexLoginActivity`).
+- REST-клиент `YandexClient` + `YandexDiskSource` + файловый кэш `SlideCache`.
+- Выбор папки на Диске (`YandexBrowseActivity`).
+- Общий интерфейс `MediaSource` для локального и удалённого источника.
+
+### Замечание
+- `client_id` в `YandexConfig` — заглушка; заменить на реальный.
 
 ## [0.3.0] — 2026-10-09
 

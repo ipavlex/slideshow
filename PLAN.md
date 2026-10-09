@@ -248,9 +248,10 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 - [x] MediaSession (media3-session, Now Playing на Android TV).
 
 ### Фаза 4 — Яндекс.Диск (деливерабл: удалённый источник)
-- [ ] OAuth device-code (`YandexLoginActivity`).
-- [ ] `YandexDiskSource` + `SlideCache` (LRU).
-- [ ] Интеграция в главное меню как второй источник.
+- [x] OAuth device-code (`YandexLoginActivity`, `YandexAuth`).
+- [x] `YandexDiskSource` + `YandexClient` + `SlideCache`.
+- [x] Интеграция в главное меню + выбор папки (`YandexBrowseActivity`).
+- [ ] client_id реального приложения (сейчас заглушка в `YandexConfig`).
 
 ### Фаза 5 — Полировка и release
 - [ ] Настройки (SettingsActivity): режим, скорость, порядок, рекурсия.

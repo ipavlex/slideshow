@@ -18,8 +18,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaSession
 import com.pzarubin.tvslideshow.R
+import com.pzarubin.tvslideshow.data.auth.TokenStore
+import com.pzarubin.tvslideshow.data.cache.SlideCache
 import com.pzarubin.tvslideshow.data.source.LocalFolderSource
 import com.pzarubin.tvslideshow.data.source.MediaItem
+import com.pzarubin.tvslideshow.data.source.MediaSource
+import com.pzarubin.tvslideshow.data.source.YandexClient
+import com.pzarubin.tvslideshow.data.source.YandexDiskSource
 import com.pzarubin.tvslideshow.domain.SlideMode
 import com.pzarubin.tvslideshow.domain.SlideshowEngine
 import com.pzarubin.tvslideshow.playback.BitmapLoader
@@ -33,10 +38,12 @@ import kotlinx.coroutines.withContext
 
 /**
  * Полноэкранное слайдшоу (фото и видео) с OSD-оверлеем и MediaSession.
+ * Источник задаётся через Intent: локальная папка (SAF) или Яндекс.Диск.
  */
 class SlideshowActivity : AppCompatActivity() {
 
     private lateinit var slideshowView: SlideshowView
+    private lateinit var source: MediaSource
     private var engine: SlideshowEngine? = null
     private var mediaSession: MediaSession? = null
     private var generation = 0
@@ -58,9 +65,24 @@ class SlideshowActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        @Suppress("DEPRECATION")
-        val treeUri = intent.getParcelableExtra<Uri>(EXTRA_TREE_URI)
-            ?: run { finish(); return }
+        val sourceType = intent.getStringExtra(EXTRA_SOURCE_TYPE) ?: SOURCE_LOCAL
+        if (sourceType == SOURCE_YANDEX) {
+            val token = TokenStore(this).accessToken
+            if (token == null) {
+                finish()
+                return
+            }
+            source = YandexDiskSource(
+                YandexClient(TokenStore(this), SlideCache(this)),
+                intent.getStringExtra(EXTRA_YANDEX_PATH) ?: "disk:/"
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            val treeUri = intent.getParcelableExtra<Uri>(EXTRA_TREE_URI)
+                ?: run { finish(); return }
+            source = LocalFolderSource(this, treeUri)
+        }
+
         mode = SlideMode.valueOf(
             intent.getStringExtra(EXTRA_MODE) ?: SlideMode.KEN_BURNS.name
         )
@@ -97,7 +119,7 @@ class SlideshowActivity : AppCompatActivity() {
         startOsdTicker()
 
         lifecycleScope.launch {
-            val items = LocalFolderSource(this@SlideshowActivity, treeUri).list()
+            val items = source.list()
             if (items.isEmpty()) {
                 Toast.makeText(
                     this@SlideshowActivity,
@@ -133,13 +155,17 @@ class SlideshowActivity : AppCompatActivity() {
         showOsd()
         when (item.kind) {
             MediaItem.Kind.PHOTO -> {
-                val uri = item.uri ?: return
                 val gen = ++generation
                 val targetW = resources.displayMetrics.widthPixels
                 val targetH = resources.displayMetrics.heightPixels
                 val duration = mode.photoDurationMs
                 lifecycleScope.launch(Dispatchers.IO) {
-                    val bmp = BitmapLoader.decode(contentResolver, uri, targetW, targetH)
+                    val uri = source.open(item)
+                    val bmp = if (uri != null) {
+                        BitmapLoader.decode(contentResolver, uri, targetW, targetH)
+                    } else {
+                        null
+                    }
                     if (gen == generation && bmp != null) {
                         withContext(Dispatchers.Main) {
                             slideshowView.showPhoto(bmp, duration)
@@ -150,8 +176,12 @@ class SlideshowActivity : AppCompatActivity() {
                 }
             }
             MediaItem.Kind.VIDEO -> {
-                val uri = item.uri ?: return
-                slideshowView.showVideo(uri, item.name)
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val uri = source.open(item)
+                    withContext(Dispatchers.Main) {
+                        if (uri != null) slideshowView.showVideo(uri, item.name)
+                    }
+                }
             }
         }
     }
@@ -273,6 +303,10 @@ class SlideshowActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_TREE_URI = "extra_tree_uri"
         const val EXTRA_MODE = "extra_mode"
+        const val EXTRA_SOURCE_TYPE = "extra_source_type"
+        const val EXTRA_YANDEX_PATH = "extra_yandex_path"
+        const val SOURCE_LOCAL = "local"
+        const val SOURCE_YANDEX = "yandex"
         const val SEEK_STEP_MS = 10_000L
         const val OSD_TIMEOUT_MS = 3000L
     }

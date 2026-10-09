@@ -40,6 +40,8 @@ class LocalFolderSource(
             }
     }
 
+    override suspend fun open(item: MediaItem): Uri? = item.uri
+
     private fun isImage(mime: String?, name: String?): Boolean {
         if (mime?.startsWith("image/") == true) return true
         return extension(name) in IMAGE_EXTENSIONS

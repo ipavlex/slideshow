@@ -11,8 +11,8 @@ android {
         applicationId = "com.pzarubin.tvslideshow"
         minSdk = 28
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "0.4.0"
     }
 
     buildTypes {
@@ -47,4 +47,5 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.4.1")
     implementation("androidx.media3:media3-ui:1.4.1")
     implementation("androidx.media3:media3-session:1.4.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

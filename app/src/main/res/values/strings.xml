@@ -4,8 +4,19 @@
     <string name="choose_folder_hint">Выберите папку с фотографиями и видео</string>
     <string name="choose_ken_burns">Ken Burns</string>
     <string name="choose_classic">Классика</string>
+    <string name="choose_yandex">Яндекс.Диск</string>
     <string name="no_media_found">В выбранной папке нет фотографий или видео</string>
     <string name="speed_value">Скорость: %1$s×</string>
     <string name="osd_counter">%1$d / %2$d</string>
     <string name="osd_paused">Пауза</string>
+    <string name="yandex_title">Яндекс.Диск</string>
+    <string name="yandex_instruction">На телефоне или компьютере откройте:</string>
+    <string name="yandex_code_label">И введите код:</string>
+    <string name="yandex_requesting">Получение кода…</string>
+    <string name="yandex_waiting">Ожидание подтверждения…</string>
+    <string name="yandex_success">Авторизовано!</string>
+    <string name="yandex_denied">Доступ отклонён</string>
+    <string name="yandex_expired">Код истёк, попробуйте ещё раз</string>
+    <string name="yandex_error">Ошибка</string>
+    <string name="yandex_start_here">Начать слайдшоу здесь</string>
 </resources>

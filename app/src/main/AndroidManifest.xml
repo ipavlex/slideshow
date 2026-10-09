@@ -35,6 +35,16 @@
             android:exported="false"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.TvSlideshow" />
+
+        <activity
+            android:name=".ui.YandexLoginActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".ui.YandexBrowseActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
     </application>
 
 </manifest>
