@@ -11,6 +11,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -25,8 +26,7 @@ import com.pzarubin.tvslideshow.domain.SlideMode
  * - [showVideo] — видео через один переиспользуемый ExoPlayer; по завершении
  *   вызывается [onVideoEnded], чтобы движок перешёл к следующему слайду.
  *
- * Переходы с видео — «резкая» смена (SurfaceView не поддерживает alpha-фейд);
- * фото↔фото — плавный кроссфейд.
+ * Плеер ([player]) создаётся сразу и доступен снаружи (для MediaSession).
  */
 class SlideshowView @JvmOverloads constructor(
     context: Context,
@@ -39,7 +39,7 @@ class SlideshowView @JvmOverloads constructor(
     private var frontIndex = 0
     private var seq = 0
 
-    private var player: ExoPlayer? = null
+    val player: ExoPlayer
     private val playerView: PlayerView
 
     var onVideoEnded: (() -> Unit)? = null
@@ -55,6 +55,22 @@ class SlideshowView @JvmOverloads constructor(
             visibility = GONE
         }
         addView(playerView)
+
+        player = ExoPlayer.Builder(context).build().apply {
+            addListener(object : Player.Listener {
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    when (playbackState) {
+                        Player.STATE_READY -> playerView.visibility = VISIBLE
+                        Player.STATE_ENDED -> onVideoFinished()
+                    }
+                }
+
+                override fun onPlayerError(error: PlaybackException) {
+                    onVideoFinished()
+                }
+            })
+        }
+        playerView.player = player
     }
 
     private fun createPhotoLayer(): View = when (mode) {
@@ -94,53 +110,34 @@ class SlideshowView @JvmOverloads constructor(
             .start()
     }
 
-    fun showVideo(uri: Uri) {
+    fun showVideo(uri: Uri, title: String) {
         // Скрываем фото: при завершении видео следующий слайд появится из чёрного.
         photoLayers.forEach { it.alpha = 0f }
         playerView.bringToFront()
         playerView.visibility = GONE
 
-        val p = ensurePlayer()
-        p.setMediaItem(MediaItem.fromUri(uri))
-        p.prepare()
-        p.playWhenReady = true
+        val mediaItem = MediaItem.Builder()
+            .setUri(uri)
+            .setMediaMetadata(MediaMetadata.Builder().setTitle(title).build())
+            .build()
+        player.setMediaItem(mediaItem)
+        player.prepare()
+        player.playWhenReady = true
     }
 
     fun seekVideoBy(deltaMs: Long) {
-        val p = player ?: return
-        if (p.currentMediaItem == null) return
-        val newPos = (p.currentPosition + deltaMs)
-            .coerceIn(0L, p.duration.coerceAtLeast(0L))
-        p.seekTo(newPos)
+        if (player.currentMediaItem == null) return
+        val newPos = (player.currentPosition + deltaMs)
+            .coerceIn(0L, player.duration.coerceAtLeast(0L))
+        player.seekTo(newPos)
     }
 
     fun pauseVideo() {
-        player?.playWhenReady = false
+        player.playWhenReady = false
     }
 
     fun resumeVideo() {
-        player?.playWhenReady = true
-    }
-
-    private fun ensurePlayer(): ExoPlayer {
-        if (player == null) {
-            player = ExoPlayer.Builder(context).build().apply {
-                addListener(object : Player.Listener {
-                    override fun onPlaybackStateChanged(playbackState: Int) {
-                        when (playbackState) {
-                            Player.STATE_READY -> playerView.visibility = VISIBLE
-                            Player.STATE_ENDED -> onVideoFinished()
-                        }
-                    }
-
-                    override fun onPlayerError(error: PlaybackException) {
-                        onVideoFinished()
-                    }
-                })
-            }
-            playerView.player = player
-        }
-        return player!!
+        player.playWhenReady = true
     }
 
     private fun onVideoFinished() {
@@ -149,7 +146,7 @@ class SlideshowView @JvmOverloads constructor(
     }
 
     private fun stopVideo() {
-        player?.stop()
+        player.stop()
         playerView.visibility = GONE
     }
 
@@ -178,8 +175,7 @@ class SlideshowView @JvmOverloads constructor(
         (photoLayers[frontIndex] as? KenBurnsView)?.cancel()
         bitmaps.forEach { it?.takeIf { b -> !b.isRecycled }?.recycle() }
         bitmaps.fill(null)
-        player?.release()
-        player = null
+        player.release()
     }
 
     companion object {

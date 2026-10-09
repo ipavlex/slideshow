@@ -35,6 +35,8 @@ class SlideshowEngine(
 
     val currentItem: MediaItem get() = items[index]
     val hasItems: Boolean get() = items.isNotEmpty()
+    val currentIndex: Int get() = index
+    val count: Int get() = items.size
 
     fun start() {
         if (items.isEmpty()) return

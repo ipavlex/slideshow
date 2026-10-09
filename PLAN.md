@@ -243,9 +243,9 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 - [x] Перемотка внутри видео (MEDIA_REWIND/FAST_FORWARD — seek ±10 с).
 
 ### Фаза 3 — Пульт и скорость (деливерабл: полное управление)
-- [ ] Маппинг кнопок (§5.3).
-- [ ] Множители скорости, OSD-оверлей.
-- [ ] MediaSession.
+- [x] Маппинг кнопок (§5.3) — реализован в Фазах 1–2.
+- [x] Множители скорости, OSD-оверлей (имя, счётчик, скорость, пауза, прогресс видео).
+- [x] MediaSession (media3-session, Now Playing на Android TV).
 
 ### Фаза 4 — Яндекс.Диск (деливерабл: удалённый источник)
 - [ ] OAuth device-code (`YandexLoginActivity`).

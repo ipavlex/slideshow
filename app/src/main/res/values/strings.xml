@@ -6,4 +6,6 @@
     <string name="choose_classic">Классика</string>
     <string name="no_media_found">В выбранной папке нет фотографий или видео</string>
     <string name="speed_value">Скорость: %1$s×</string>
+    <string name="osd_counter">%1$d / %2$d</string>
+    <string name="osd_paused">Пауза</string>
 </resources>
