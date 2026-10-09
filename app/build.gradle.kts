@@ -1,7 +1,16 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+// Секреты (client_id и т.п.) хранятся в отдельном файле и читаются на сборке.
+val secretsFile = rootProject.file("app/secrets.properties")
+val secrets = Properties().apply {
+    if (secretsFile.exists()) secretsFile.inputStream().use { load(it) }
+}
+val yandexClientId = secrets.getProperty("YANDEX_CLIENT_ID", "")
 
 android {
     namespace = "com.pzarubin.tvslideshow"
@@ -13,6 +22,12 @@ android {
         targetSdk = 34
         versionCode = 5
         versionName = "0.5.0"
+
+        buildConfigField("String", "YANDEX_CLIENT_ID", "\"$yandexClientId\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
