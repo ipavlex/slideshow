@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- D-pad фокус: карточка слегка «приподнимается» (масштаб + Z).
+     Применяется через android:stateListAnimator; подсветка фона остаётся
+     в bg_tv_button (селектор state_focused), здесь только масштаб и тень. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <set>
+            <objectAnimator android:propertyName="scaleX" android:valueFrom="1" android:valueTo="1.05"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+            <objectAnimator android:propertyName="scaleY" android:valueFrom="1" android:valueTo="1.05"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+            <objectAnimator android:propertyName="translationZ" android:valueFrom="0dp"
+                android:valueTo="@dimen/menu_card_focus_scale_z"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+        </set>
+    </item>
+    <item android:state_focused="true">
+        <set>
+            <objectAnimator android:propertyName="scaleX" android:valueFrom="1" android:valueTo="1.05"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+            <objectAnimator android:propertyName="scaleY" android:valueFrom="1" android:valueTo="1.05"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+            <objectAnimator android:propertyName="translationZ" android:valueFrom="0dp"
+                android:valueTo="@dimen/menu_card_focus_scale_z"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+        </set>
+    </item>
+    <item>
+        <set>
+            <objectAnimator android:propertyName="scaleX" android:valueFrom="1.05" android:valueTo="1"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+            <objectAnimator android:propertyName="scaleY" android:valueFrom="1.05" android:valueTo="1"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+            <objectAnimator android:propertyName="translationZ" android:valueFrom="@dimen/menu_card_focus_scale_z"
+                android:valueTo="0dp"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+        </set>
+    </item>
+</selector>
