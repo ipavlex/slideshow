@@ -85,6 +85,8 @@ app/src/main/java/com/pzarubin/tvslideshow/
 │   └── SlideMode.kt           # KEN_BURNS / CLASSIC
 ├── playback/
 │   ├── SlideshowView.kt       # контейнер, оркестрация слайдов
+│   │                          #  (видео — ExoPlayer + TextureView: rotation
+│   │                          #  метаданные вертикальных видео применяются)
 │   ├── KenBurnsView.kt        # кастомная view: pan+zoom (drawBitmap,
 │   │                          #  pan клампится по запасу оси — без дёрганья краёв)
 │   └── BitmapLoader.kt        # декодирование изображений

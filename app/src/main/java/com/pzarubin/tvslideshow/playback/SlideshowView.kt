@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -15,8 +16,8 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.domain.SlideMode
 
 /**
@@ -48,12 +49,10 @@ class SlideshowView @JvmOverloads constructor(
         photoLayers.forEach { addView(it, LayoutParams(MATCH_PARENT, MATCH_PARENT)) }
         photoLayers[1].alpha = 0f
 
-        playerView = PlayerView(context).apply {
-            layoutParams = LayoutParams(MATCH_PARENT, MATCH_PARENT)
-            useController = false
-            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-            visibility = GONE
-        }
+        // PlayerView из XML: surface_type=texture_view — на ТВ SurfaceView
+        // не применяет rotation-метаданные, вертикальные видео ложатся на бок.
+        playerView = LayoutInflater.from(context)
+            .inflate(R.layout.view_player, this, false) as PlayerView
         addView(playerView)
 
         player = ExoPlayer.Builder(context).build().apply {
