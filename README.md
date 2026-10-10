@@ -40,9 +40,15 @@ https://oauth.yandex.ru/. Значение хранится в отдельно�
 
 ```properties
 YANDEX_CLIENT_ID=ваш_client_id
+YANDEX_CLIENT_SECRET=ваш_client_secret
 ```
 
 Без этого файла сборка пройдёт, но авторизация Яндекс.Диска не заработает.
+
+Секрет нужен, если приложение на oauth.yandex.ru зарегистрировано как
+confidential (например, тип «Для доступа к API или отладки») — такой тип
+требует `client_secret` в запросах токена. Для public/нативного приложения
+ключ можно не указывать.
 
 ### Android Studio
 

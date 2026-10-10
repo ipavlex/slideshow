@@ -12,11 +12,12 @@ val secrets = Properties().apply {
     if (secretsFile.exists()) secretsFile.inputStream().use { load(it) }
 }
 val yandexClientId = secrets.getProperty("YANDEX_CLIENT_ID", "")
+val yandexClientSecret = secrets.getProperty("YANDEX_CLIENT_SECRET", "")
 
 // Имя приложения (slug) и версия — используются в имени APK.
 val appName = "tvslideshow"
-val appVersionName = "0.9.5"
-val appVersionCode = 19
+val appVersionName = "0.9.6"
+val appVersionCode = 20
 
 android {
     namespace = "com.pzarubin.tvslideshow"
@@ -30,6 +31,7 @@ android {
         versionName = appVersionName
 
         buildConfigField("String", "YANDEX_CLIENT_ID", "\"$yandexClientId\"")
+        buildConfigField("String", "YANDEX_CLIENT_SECRET", "\"$yandexClientSecret\"")
 
         ndk {
             // Нативный HEIC-декодер (libheif) собирается для этих ABI.

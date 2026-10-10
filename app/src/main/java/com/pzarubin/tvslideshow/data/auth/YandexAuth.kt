@@ -41,6 +41,10 @@ object YandexAuth {
         data class Error(val message: String) : PollResult()
     }
 
+    /** Секрет клиента — добавляется в тело, если задан (confidential-приложения). */
+    private fun FormBody.Builder.addClientSecret(): FormBody.Builder =
+        if (YandexConfig.CLIENT_SECRET.isNotBlank()) add("client_secret", YandexConfig.CLIENT_SECRET) else this
+
     /** Шаг 1: запросить код устройства. */
     suspend fun requestDeviceCode(clientId: String, deviceId: String): DeviceCode =
         withContext(Dispatchers.IO) {
@@ -49,6 +53,7 @@ object YandexAuth {
                 .add("device_id", deviceId)
                 .add("device_name", YandexConfig.DEVICE_NAME)
                 .add("scope", YandexConfig.SCOPE)
+                .addClientSecret()
                 .build()
             val req = Request.Builder().url("$OAUTH_BASE/device/code").post(body).build()
             client.newCall(req).execute().use { resp ->
@@ -75,6 +80,7 @@ object YandexAuth {
                 .add("grant_type", "device_code")
                 .add("code", deviceCode)
                 .add("client_id", clientId)
+                .addClientSecret()
                 .build()
             val req = Request.Builder().url("$OAUTH_BASE/token").post(body).build()
             client.newCall(req).execute().use { resp ->
@@ -109,6 +115,7 @@ object YandexAuth {
                 .add("grant_type", "refresh_token")
                 .add("refresh_token", refreshToken)
                 .add("client_id", clientId)
+                .addClientSecret()
                 .build()
             val req = Request.Builder().url("$OAUTH_BASE/token").post(body).build()
             client.newCall(req).execute().use { resp ->

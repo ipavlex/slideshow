@@ -12,6 +12,12 @@ import com.pzarubin.tvslideshow.BuildConfig
 object YandexConfig {
     val CLIENT_ID: String = BuildConfig.YANDEX_CLIENT_ID
 
+    /**
+     * Секрет клиента. Пуст для public-приложений; для confidential
+     * (тип «Для доступа к API или отладки») обязателен в запросах /token.
+     */
+    val CLIENT_SECRET: String = BuildConfig.YANDEX_CLIENT_SECRET
+
     /** Чтение файлов на Яндекс.Диске. */
     const val SCOPE = "cloud_api:disk.read"
 
