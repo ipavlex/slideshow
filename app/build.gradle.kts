@@ -15,8 +15,8 @@ val yandexClientId = secrets.getProperty("YANDEX_CLIENT_ID", "")
 
 // Имя приложения (slug) и версия — используются в имени APK.
 val appName = "tvslideshow"
-val appVersionName = "0.7.3"
-val appVersionCode = 11
+val appVersionName = "0.9.1"
+val appVersionCode = 15
 
 android {
     namespace = "com.pzarubin.tvslideshow"
@@ -30,6 +30,18 @@ android {
         versionName = appVersionName
 
         buildConfigField("String", "YANDEX_CLIENT_ID", "\"$yandexClientId\"")
+
+        ndk {
+            // Нативный HEIC-декодер (libheif) собирается для этих ABI.
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     buildFeatures {
@@ -78,4 +90,6 @@ dependencies {
     implementation("androidx.media3:media3-session:1.4.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.zxing:core:3.5.3")
+    // Локальные нативные обёртки (например, libheif для HEIC).
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
 }

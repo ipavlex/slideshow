@@ -18,3 +18,7 @@ captures/
 # Build outputs
 *.apk
 *.aab
+
+# Дизайн-хендоффы (содержимое уже применено в app/src/main/res)
+/design-handoff/
+/tv_slideshow_res/
