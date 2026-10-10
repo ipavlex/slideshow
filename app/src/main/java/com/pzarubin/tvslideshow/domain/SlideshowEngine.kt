@@ -12,6 +12,11 @@ import kotlinx.coroutines.launch
  * Для фото длительность вычисляется через [durationResolver] и делится на
  * множитель скорости. Видео проигрывается до конца и продвигает слайдшоу
  * через [notifyCurrentFinished].
+ *
+ * Таймер фото-слайда стартует не при переключении, а после фактического показа
+ * ([notifyPhotoShown]): декодирование (особенно HEIC) может длиться дольше
+ * длительности слайда — иначе слайд пропускался бы, не успев показаться.
+ * Активность вызывает [beginPhotoLoad] перед декодированием.
  */
 class SlideshowEngine(
     private val items: List<MediaItem>,
@@ -30,6 +35,9 @@ class SlideshowEngine(
     private var index = 0
     private var tickJob: Job? = null
 
+    /** Идёт декодирование текущего фото — таймер ждёт [notifyPhotoShown]. */
+    private var loadingPhoto = false
+
     var onSlide: ((MediaItem) -> Unit)? = null
     var onStateChanged: ((State) -> Unit)? = null
 
@@ -43,7 +51,7 @@ class SlideshowEngine(
         index = 0
         setState(State.PLAYING)
         onSlide?.invoke(currentItem)
-        scheduleNext()
+        // Фото: таймер стартует после показа; видео: ждём завершения playback.
     }
 
     fun pause() {
@@ -55,6 +63,9 @@ class SlideshowEngine(
     fun resume() {
         if (state != State.PAUSED) return
         setState(State.PLAYING)
+        if (currentItem.kind == MediaItem.Kind.PHOTO && loadingPhoto) {
+            return // таймер придёт из notifyPhotoShown после декодирования
+        }
         scheduleNext()
     }
 
@@ -80,6 +91,24 @@ class SlideshowEngine(
         moveBy(1)
     }
 
+    /**
+     * Активность начинает декодирование текущего фото: таймер замораживается
+     * до фактического показа ([notifyPhotoShown]) или перехода к следующему.
+     */
+    fun beginPhotoLoad() {
+        if (currentItem.kind != MediaItem.Kind.PHOTO) return
+        loadingPhoto = true
+        tickJob?.cancel()
+        tickJob = null
+    }
+
+    /** Фото показано на экране — теперь можно отсчитывать его длительность. */
+    fun notifyPhotoShown() {
+        if (currentItem.kind != MediaItem.Kind.PHOTO) return
+        loadingPhoto = false
+        if (state == State.PLAYING) scheduleNext()
+    }
+
     fun release() {
         tickJob?.cancel()
         tickJob = null
@@ -89,7 +118,8 @@ class SlideshowEngine(
         if (items.isEmpty()) return
         index = (index + delta + items.size) % items.size
         onSlide?.invoke(currentItem)
-        if (state == State.PLAYING) scheduleNext()
+        // Фото: таймер стартует после показа (notifyPhotoShown); видео: ждём завершения.
+        if (state == State.PLAYING && currentItem.kind == MediaItem.Kind.VIDEO) scheduleNext()
     }
 
     private fun scheduleNext() {
@@ -113,7 +143,11 @@ class SlideshowEngine(
 
     private fun setSpeed(value: Float) {
         speedMultiplier = value
-        if (state == State.PLAYING) scheduleNext()
+        // Во время загрузки фото таймер не трогаем — новая скорость будет
+        // учтена в notifyPhotoShown; у видео таймера нет.
+        if (state == State.PLAYING && !loadingPhoto &&
+            currentItem.kind == MediaItem.Kind.PHOTO
+        ) scheduleNext()
     }
 
     private fun setState(s: State) {

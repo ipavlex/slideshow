@@ -2,6 +2,7 @@ package com.pzarubin.tvslideshow.ui
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -54,6 +55,16 @@ class SlideshowActivity : AppCompatActivity() {
     private lateinit var mode: SlideMode
     private var photoDuration = 0L
     private var currentItem: MediaItem? = null
+    private var playlist: List<MediaItem> = emptyList()
+
+    // Prefetch следующего фото-слайда: декодируем заранее, пока показывается
+    // текущий, чтобы HEIC (медленный программный декод) не давал чёрный экран.
+    private var prefetchJob: Job? = null
+    private var prefetchItem: MediaItem? = null
+
+    @Volatile
+    private var prefetchedBitmap: Bitmap? = null
+    private var lastShownGen = -1
 
     // OSD
     private lateinit var osdOverlay: View
@@ -154,11 +165,73 @@ class SlideshowActivity : AppCompatActivity() {
     }
 
     private fun startSlideshow(items: List<MediaItem>) {
+        playlist = items
         val engine = SlideshowEngine(items, lifecycleScope) { photoDuration }
         this.engine = engine
         engine.onSlide = { showSlide(it) }
         engine.onStateChanged = { onEngineStateChanged(it) }
         engine.start()
+    }
+
+    /** Целевой размер декодирования: экран с запасом под зум Кен Бёрнса. */
+    private fun slideTarget(): IntArray {
+        val zoom = KenBurnsView.KEN_BURNS_SCALE
+        return intArrayOf(
+            (resources.displayMetrics.widthPixels * zoom).toInt(),
+            (resources.displayMetrics.heightPixels * zoom).toInt()
+        )
+    }
+
+    private suspend fun decodeItem(item: MediaItem, targetW: Int, targetH: Int): Bitmap? {
+        val uri = source.open(item) ?: return null
+        return BitmapLoader.decode(contentResolver, uri, targetW, targetH)
+    }
+
+    /**
+     * Декодирует фото-слайд: сначала готовый prefetch, иначе — декод «по требованию».
+     * Вызывается из IO-корутины.
+     */
+    private suspend fun loadSlideBitmap(item: MediaItem, targetW: Int, targetH: Int): Bitmap? {
+        if (prefetchItem == item) {
+            prefetchJob?.join()
+            prefetchJob = null
+            val bmp = prefetchedBitmap
+            prefetchedBitmap = null
+            prefetchItem = null
+            if (bmp != null) return bmp
+        }
+        return decodeItem(item, targetW, targetH)
+    }
+
+    /**
+     * Запускает фоновое декодирование следующего фото-слайда (по кругу).
+     * Вызывается после показа текущего слайда.
+     */
+    private fun startPrefetch(nextIndex: Int) {
+        if (playlist.isEmpty()) return
+        val nextItem = playlist[nextIndex % playlist.size]
+        if (nextItem.kind != MediaItem.Kind.PHOTO) return
+        // Уже готово или готовится именно этот слайд.
+        if (prefetchItem == nextItem &&
+            (prefetchedBitmap != null || prefetchJob?.isActive == true)
+        ) return
+        prefetchJob?.cancel()
+        prefetchJob = null
+        prefetchedBitmap?.recycle()
+        prefetchedBitmap = null
+        prefetchItem = null
+
+        val gen = generation
+        val (targetW, targetH) = slideTarget()
+        prefetchItem = nextItem
+        prefetchJob = lifecycleScope.launch(Dispatchers.IO) {
+            val bmp = decodeItem(nextItem, targetW, targetH)
+            if (gen == generation) {
+                prefetchedBitmap = bmp
+            } else {
+                bmp?.recycle()
+            }
+        }
     }
 
     private fun showSlide(item: MediaItem) {
@@ -167,38 +240,45 @@ class SlideshowActivity : AppCompatActivity() {
         when (item.kind) {
             MediaItem.Kind.PHOTO -> {
                 val gen = ++generation
-                // Декодируем «cover» с запасом под зум Кен Бёрнса (до 1.12x),
-                // чтобы при отрисовке не было апскейла (иначе пикселизация).
-                val zoom = KenBurnsView.KEN_BURNS_SCALE
-                val targetW = (resources.displayMetrics.widthPixels * zoom).toInt()
-                val targetH = (resources.displayMetrics.heightPixels * zoom).toInt()
+                engine?.beginPhotoLoad()
+                val (targetW, targetH) = slideTarget()
                 val duration = photoDuration
                 lifecycleScope.launch(Dispatchers.IO) {
-                    val uri = source.open(item)
-                    val bmp = if (uri != null) {
-                        BitmapLoader.decode(contentResolver, uri, targetW, targetH)
-                    } else {
-                        null
-                    }
+                    val bmp = loadSlideBitmap(item, targetW, targetH)
                     if (gen != generation) {
                         bmp?.recycle()
                         return@launch
                     }
                     withContext(Dispatchers.Main) {
+                        if (gen != generation) {
+                            bmp?.recycle()
+                            return@withContext
+                        }
                         if (bmp != null) {
+                            lastShownGen = gen
                             slideshowView.showPhoto(bmp, duration)
+                            engine?.notifyPhotoShown()
+                            startPrefetch((engine?.currentIndex ?: 0) + 1)
                         } else {
                             // Пустое/битое фото — пропускаем к следующему слайду.
                             engine?.next()
                         }
                     }
                 }
+                // Страховка от вечного чёрного экрана: декод/загрузка зависли.
+                lifecycleScope.launch {
+                    delay(PHOTO_LOAD_WATCHDOG_MS)
+                    if (gen == generation && lastShownGen != gen) engine?.next()
+                }
             }
             MediaItem.Kind.VIDEO -> {
                 lifecycleScope.launch(Dispatchers.IO) {
                     val uri = source.open(item)
                     withContext(Dispatchers.Main) {
-                        if (uri != null) slideshowView.showVideo(uri, item.name)
+                        if (uri != null) {
+                            slideshowView.showVideo(uri, item.name)
+                            startPrefetch((engine?.currentIndex ?: 0) + 1)
+                        }
                     }
                 }
             }
@@ -313,6 +393,9 @@ class SlideshowActivity : AppCompatActivity() {
         super.onDestroy()
         osdJob?.cancel()
         osdHideHandler.removeCallbacks(osdHideRunnable)
+        prefetchJob?.cancel()
+        prefetchedBitmap?.recycle()
+        prefetchedBitmap = null
         engine?.release()
         mediaSession?.release()
         mediaSession = null
@@ -327,5 +410,8 @@ class SlideshowActivity : AppCompatActivity() {
         const val SOURCE_YANDEX = "yandex"
         const val SEEK_STEP_MS = 10_000L
         const val OSD_TIMEOUT_MS = 3000L
+
+        /** Если фото не показалось за это время — пропускаем (защита от зависания). */
+        const val PHOTO_LOAD_WATCHDOG_MS = 30_000L
     }
 }
