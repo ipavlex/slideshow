@@ -13,7 +13,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
-import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -28,7 +27,8 @@ import java.io.File
  * Встроенный браузер папок (внутренняя память + USB). Используется вместо
  * системного SAF-пикера, которого нет на части Android TV. Показывает вложенные
  * папки, а также медиафайлы текущей папки (фото/видео) — чтобы было видно,
- * что в папке есть контент. Возвращает путь выбранной папки через [EXTRA_FOLDER_PATH].
+ * что в папке есть контент. «Выбрать эту папку» вынесено первым пунктом списка.
+ * Возвращает путь выбранной папки через [EXTRA_FOLDER_PATH].
  */
 class FolderBrowserActivity : AppCompatActivity() {
 
@@ -51,12 +51,10 @@ class FolderBrowserActivity : AppCompatActivity() {
 
         pathView = findViewById(R.id.browser_path)
         listView = findViewById(R.id.browser_list)
-        val selectBtn = findViewById<Button>(R.id.browser_select)
 
         adapter = BrowserAdapter(this)
         listView.adapter = adapter
         listView.setOnItemClickListener { _, _, position, _ -> onEntryClick(position) }
-        selectBtn.setOnClickListener { selectCurrent() }
     }
 
     override fun onResume() {
@@ -99,7 +97,7 @@ class FolderBrowserActivity : AppCompatActivity() {
         if (currentDir == null) {
             roots = storageRoots()
             pathView.text = getString(R.string.browser_root_title)
-            rows = roots.map { BrowserRow(it.second, it.first, isFolder = true) }
+            rows = roots.map { BrowserRow(it.second, RowKind.FOLDER, it.first) }
         } else {
             val dir = currentDir!!
             pathView.text = dir.absolutePath
@@ -112,16 +110,12 @@ class FolderBrowserActivity : AppCompatActivity() {
                 .sortedBy { it.name.lowercase() }
 
             val list = mutableListOf<BrowserRow>()
-            list.add(BrowserRow(getString(R.string.browser_up), null, isFolder = true))
-            folders.forEach { list.add(BrowserRow(it.name, it, isFolder = true)) }
+            list.add(BrowserRow(getString(R.string.browser_select), RowKind.SELECT))
+            list.add(BrowserRow(getString(R.string.browser_up), RowKind.UP))
+            folders.forEach { list.add(BrowserRow(it.name, RowKind.FOLDER, it)) }
             media.forEach {
                 list.add(
-                    BrowserRow(
-                        it.name,
-                        null,
-                        isFolder = false,
-                        isVideo = MediaFileTypes.isVideo(it.name)
-                    )
+                    BrowserRow(it.name, RowKind.MEDIA, isVideo = MediaFileTypes.isVideo(it.name))
                 )
             }
             rows = list
@@ -131,9 +125,18 @@ class FolderBrowserActivity : AppCompatActivity() {
 
     private fun onEntryClick(position: Int) {
         val row = rows.getOrNull(position) ?: return
-        if (!row.isFolder) return
-        currentDir = row.target ?: parentOf(currentDir)
-        load()
+        when (row.kind) {
+            RowKind.SELECT -> selectCurrent()
+            RowKind.UP -> {
+                currentDir = parentOf(currentDir)
+                load()
+            }
+            RowKind.FOLDER -> {
+                currentDir = row.target
+                load()
+            }
+            RowKind.MEDIA -> Unit // не кликабельно
+        }
     }
 
     private fun parentOf(dir: File?): File? {
@@ -176,11 +179,13 @@ class FolderBrowserActivity : AppCompatActivity() {
     }
 }
 
-/** Строка списка: папка (кликабельная) или медиафайл (информационный). */
+/** Тип строки списка браузера. */
+private enum class RowKind { SELECT, UP, FOLDER, MEDIA }
+
 private data class BrowserRow(
     val label: String,
-    val target: File?,
-    val isFolder: Boolean,
+    val kind: RowKind,
+    val target: File? = null,
     val isVideo: Boolean = false
 )
 
@@ -200,8 +205,11 @@ private class BrowserAdapter(private val context: Context) : BaseAdapter() {
 
     override fun getItemId(position: Int) = position.toLong()
 
-    // Только папки доступны для выбора/фокуса; медиафайлы — просто для информации.
-    override fun isEnabled(position: Int) = rows[position].isFolder
+    // Есть неактивные строки (медиафайлы), поэтому сообщаем, что не все enabled —
+    // иначе ListView не пропустит их при навигации фокусом.
+    override fun areAllItemsEnabled() = false
+
+    override fun isEnabled(position: Int) = rows[position].kind != RowKind.MEDIA
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val view = convertView ?: LayoutInflater.from(context)
@@ -211,17 +219,25 @@ private class BrowserAdapter(private val context: Context) : BaseAdapter() {
         val row = rows[position]
 
         name.text = row.label
-        if (row.isFolder) {
-            view.setBackgroundResource(R.drawable.bg_tv_row)
-            name.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
-            badge.visibility = View.GONE
-        } else {
-            view.background = null
-            name.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
-            badge.visibility = View.VISIBLE
-            badge.text = context.getString(
-                if (row.isVideo) R.string.badge_video else R.string.badge_photo
-            )
+        when (row.kind) {
+            RowKind.MEDIA -> {
+                view.background = null
+                name.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+                badge.visibility = View.VISIBLE
+                badge.text = context.getString(
+                    if (row.isVideo) R.string.badge_video else R.string.badge_photo
+                )
+            }
+            RowKind.SELECT -> {
+                view.setBackgroundResource(R.drawable.bg_tv_row)
+                name.setTextColor(ContextCompat.getColor(context, R.color.primary))
+                badge.visibility = View.GONE
+            }
+            RowKind.UP, RowKind.FOLDER -> {
+                view.setBackgroundResource(R.drawable.bg_tv_row)
+                name.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                badge.visibility = View.GONE
+            }
         }
         return view
     }

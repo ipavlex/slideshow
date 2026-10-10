@@ -46,11 +46,4 @@
         android:listSelector="@drawable/bg_tv_row_focus"
         android:paddingBottom="16dp" />
 
-    <Button
-        android:id="@+id/browser_select"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/browser_select" />
-
 </LinearLayout>
