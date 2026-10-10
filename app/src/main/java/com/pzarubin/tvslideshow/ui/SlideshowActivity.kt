@@ -15,6 +15,7 @@ import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaSession
@@ -22,6 +23,7 @@ import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.albums.AlbumStore
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
+import com.pzarubin.tvslideshow.data.settings.ResumeStore
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
 import com.pzarubin.tvslideshow.data.source.AlbumSource
 import com.pzarubin.tvslideshow.data.source.FolderSource
@@ -59,6 +61,9 @@ class SlideshowActivity : AppCompatActivity() {
     private var photoDuration = 0L
     private var currentItem: MediaItem? = null
     private var playlist: List<MediaItem> = emptyList()
+
+    /** Идентификатор источника для запоминания последнего слайда. */
+    private var sourceKey: String? = null
 
     /** Настройка «показывать плашку (OSD)» — гейтится в [showOsd]. */
     private var osdEnabled = true
@@ -123,6 +128,7 @@ class SlideshowActivity : AppCompatActivity() {
         mode = settings.mode
         photoDuration = settings.photoDurationMs.takeIf { it > 0L } ?: mode.photoDurationMs
         osdEnabled = settings.showOsd
+        sourceKey = buildSourceKey(sourceType, albumUrl, albumIds)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUi()
@@ -191,7 +197,14 @@ class SlideshowActivity : AppCompatActivity() {
                     finish()
                     return@launch
                 }
-                startSlideshow(items)
+                val startIndex = resolveResumeIndex(items)
+                if (startIndex > 0) {
+                    withContext(Dispatchers.Main) {
+                        askResume(startIndex) { startSlideshow(items, it) }
+                    }
+                } else {
+                    startSlideshow(items)
+                }
             } catch (e: Exception) {
                 Toast.makeText(
                     this@SlideshowActivity,
@@ -212,7 +225,7 @@ class SlideshowActivity : AppCompatActivity() {
         osdProgress = osdOverlay.findViewById(R.id.osd_progress)
     }
 
-    private fun startSlideshow(items: List<MediaItem>) {
+    private fun startSlideshow(items: List<MediaItem>, startIndex: Int = 0) {
         playlist = items
         val engine = SlideshowEngine(items, lifecycleScope) { photoDuration }
         this.engine = engine
@@ -226,7 +239,44 @@ class SlideshowActivity : AppCompatActivity() {
             // Отклик на нажатие даже при выключенной плашке.
             showOsd(force = true)
         }
-        engine.start()
+        engine.start(startIndex)
+    }
+
+    /**
+     * Возвращает индекс для продолжения показа, если для этого источника
+     * сохранён последний показанный слайд и он есть в текущем плейлисте.
+     */
+    private fun resolveResumeIndex(items: List<MediaItem>): Int {
+        val key = sourceKey ?: return 0
+        val savedId = ResumeStore(this).get(key) ?: return 0
+        return items.indexOfFirst { it.id == savedId }.takeIf { it > 0 } ?: 0
+    }
+
+    /** Диалог «Продолжить / С начала» при наличии сохранённой позиции. */
+    private fun askResume(startIndex: Int, onStart: (Int) -> Unit) {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.resume_title)
+            .setMessage(R.string.resume_message)
+            .setPositiveButton(R.string.resume_continue) { _, _ -> onStart(startIndex) }
+            .setNegativeButton(R.string.resume_start_over) { _, _ ->
+                sourceKey?.let { ResumeStore(this).clear(it) }
+                onStart(0)
+            }
+            .setOnCancelListener { finish() }
+            .show()
+    }
+
+    /** Строит стабильный ключ источника по параметрам запуска. */
+    private fun buildSourceKey(
+        sourceType: String,
+        albumUrl: String?,
+        albumIds: List<String>?
+    ): String = when (sourceType) {
+        SOURCE_YANDEX -> "yandex|${intent.getStringExtra(EXTRA_YANDEX_PATH) ?: "disk:/"}"
+        SOURCE_ALBUM -> "album|$albumUrl"
+        SOURCE_ALBUMS -> "albums|${albumIds?.sorted()?.joinToString(",") ?: ""}"
+        SOURCE_LOCAL -> "local|${intent.getStringExtra(EXTRA_FOLDER_PATH) ?: ""}"
+        else -> sourceType
     }
 
     /** Целевой размер декодирования: экран с запасом под зум Кен Бёрнса. */
@@ -292,6 +342,7 @@ class SlideshowActivity : AppCompatActivity() {
 
     private fun showSlide(item: MediaItem) {
         currentItem = item
+        sourceKey?.let { ResumeStore(this).put(it, item.id) }
         showOsd()
         when (item.kind) {
             MediaItem.Kind.PHOTO -> {

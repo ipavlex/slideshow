@@ -60,6 +60,12 @@
     <string name="badge_video">ВИДЕО</string>
     <string name="no_media_found">В выбранной папке нет фотографий или видео</string>
 
+    <!-- Возобновление слайдшоу -->
+    <string name="resume_title">Слайдшоу</string>
+    <string name="resume_message">Прошлый показ не был завершён. Продолжить с последнего слайда?</string>
+    <string name="resume_continue">Продолжить</string>
+    <string name="resume_start_over">С начала</string>
+
     <!-- Вход Яндекс.Диск -->
     <string name="login_title">Подключение Яндекс Диска</string>
     <string name="login_description">Войдите в аккаунт Яндекса, чтобы открыть фотографии на Диске.</string>

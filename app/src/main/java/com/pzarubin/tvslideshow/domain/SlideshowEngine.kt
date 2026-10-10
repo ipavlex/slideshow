@@ -51,9 +51,9 @@ class SlideshowEngine(
     val currentIndex: Int get() = index
     val count: Int get() = items.size
 
-    fun start() {
+    fun start(startIndex: Int = 0) {
         if (items.isEmpty()) return
-        index = 0
+        index = startIndex.coerceIn(items.indices)
         setState(State.PLAYING)
         onSlide?.invoke(currentItem)
         // Фото: таймер стартует после показа; видео: ждём завершения playback.
