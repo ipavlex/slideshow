@@ -175,6 +175,12 @@ class SlideshowActivity : AppCompatActivity() {
         this.engine = engine
         engine.onSlide = { showSlide(it) }
         engine.onStateChanged = { onEngineStateChanged(it) }
+        engine.onSpeedChanged = { speed ->
+            // Скорость влияет и на видео: ускоряем/замедляем воспроизведение.
+            if (currentItem?.kind == MediaItem.Kind.VIDEO) {
+                slideshowView.player.setPlaybackSpeed(speed)
+            }
+        }
         engine.start()
     }
 
@@ -247,7 +253,9 @@ class SlideshowActivity : AppCompatActivity() {
                 val gen = ++generation
                 engine?.beginPhotoLoad()
                 val (targetW, targetH) = slideTarget()
-                val duration = photoDuration
+                // Длительность с учётом скорости — чтобы анимация Ken Burns
+                // соответствовала фактическому времени показа слайда.
+                val duration = (photoDuration / (engine?.speedMultiplier ?: 1f)).toLong()
                 lifecycleScope.launch(Dispatchers.IO) {
                     val bmp = loadSlideBitmap(item, targetW, targetH)
                     if (gen != generation) {
@@ -281,6 +289,7 @@ class SlideshowActivity : AppCompatActivity() {
                     val uri = source.open(item)
                     withContext(Dispatchers.Main) {
                         if (uri != null) {
+                            slideshowView.player.setPlaybackSpeed(engine?.speedMultiplier ?: 1f)
                             slideshowView.showVideo(uri, item.name)
                             startPrefetch((engine?.currentIndex ?: 0) + 1)
                         }

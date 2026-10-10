@@ -41,6 +41,9 @@ class SlideshowEngine(
     var onSlide: ((MediaItem) -> Unit)? = null
     var onStateChanged: ((State) -> Unit)? = null
 
+    /** Скорость изменилась — активность применяет её к видео (playbackSpeed). */
+    var onSpeedChanged: ((Float) -> Unit)? = null
+
     val currentItem: MediaItem get() = items[index]
     val hasItems: Boolean get() = items.isNotEmpty()
     val currentIndex: Int get() = index
@@ -143,6 +146,7 @@ class SlideshowEngine(
 
     private fun setSpeed(value: Float) {
         speedMultiplier = value
+        onSpeedChanged?.invoke(value)
         // Во время загрузки фото таймер не трогаем — новая скорость будет
         // учтена в notifyPhotoShown; у видео таймера нет.
         if (state == State.PLAYING && !loadingPhoto &&
