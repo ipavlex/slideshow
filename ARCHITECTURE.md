@@ -86,9 +86,7 @@ app/src/main/java/com/pzarubin/tvslideshow/
 ├── playback/
 │   ├── SlideshowView.kt       # контейнер, оркестрация слайдов
 │   ├── KenBurnsView.kt        # кастомная view: pan+zoom (drawBitmap,
-│   │                          #  pan клампится по запасу оси, отрисовка
-│   │                          #  выровнена по целым пикселям — без дрожания
-│   │                          #  краёв и чёрных кадров)
+│   │                          #  pan клампится по запасу оси — без дёрганья краёв)
 │   └── BitmapLoader.kt        # декодирование изображений
 └── ui/
     ├── SlideshowActivity.kt   # полноэкранный показ

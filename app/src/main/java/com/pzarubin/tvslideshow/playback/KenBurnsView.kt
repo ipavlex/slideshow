@@ -12,7 +12,6 @@ import android.view.animation.LinearInterpolator
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.roundToInt
 import kotlin.random.Random
 
 /**
@@ -101,18 +100,12 @@ class KenBurnsView @JvmOverloads constructor(
         val bh = bmp.height.toFloat()
         val scale = baseScale(bmp, vw, vh) * zoom
 
-        // Целочисленное выравнивание прямоугольника отрисовки: дробные
-        // координаты краёв дают субпиксельное «дрожание» кромки изображения
-        // (особенно заметно на вертикальных слайдах, где кромка ходит
-        // вдоль экрана при зуме). Размер и сдвиг округляем до пикселя.
-        val drawW = (bw * scale).roundToInt().coerceAtLeast(1)
-        val drawH = (bh * scale).roundToInt().coerceAtLeast(1)
-        val left = ((vw - drawW) / 2f + panX).roundToInt()
-        val top = ((vh - drawH) / 2f + panY).roundToInt()
-
         matrix.reset()
-        matrix.setScale(drawW / bw, drawH / bh)
-        matrix.postTranslate(left.toFloat(), top.toFloat())
+        matrix.postScale(scale, scale)
+        matrix.postTranslate(
+            (vw - bw * scale) / 2f + panX,
+            (vh - bh * scale) / 2f + panY
+        )
         canvas.drawBitmap(bmp, matrix, paint)
     }
 
@@ -144,10 +137,7 @@ class KenBurnsView @JvmOverloads constructor(
         for (i in 1..PAN_SAMPLES) {
             val t = i.toFloat() / PAN_SAMPLES
             val zoom = start + (end - start) * t
-            // Запас с зазором в пиксель: округление отрисовки до целых
-            // пикселей не должно обнажить фон у кромки.
-            val slack = (abs(dim * base * zoom - viewDim) / 2f - EDGE_SAFETY_PX)
-                .coerceAtLeast(0f)
+            val slack = abs(dim * base * zoom - viewDim) / 2f
             bound = min(bound, slack / t)
         }
         return (PAN_FRACTION * viewDim).coerceAtMost(bound)
@@ -167,8 +157,5 @@ class KenBurnsView @JvmOverloads constructor(
 
         /** Выборка моментов времени для расчёта лимита pan. */
         private const val PAN_SAMPLES = 24
-
-        /** Зазор между кромкой изображения и границей экрана, px. */
-        private const val EDGE_SAFETY_PX = 1f
     }
 }
