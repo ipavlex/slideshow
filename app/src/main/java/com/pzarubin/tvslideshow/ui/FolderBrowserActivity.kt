@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.source.MediaFileTypes
+import com.pzarubin.tvslideshow.playback.Thumbnails
 import java.io.File
 
 /**
@@ -45,6 +46,8 @@ class FolderBrowserActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_folder_browser)
+
+        Thumbnails.init(this)
 
         pathView = findViewById(R.id.browser_path)
         grid = findViewById(R.id.browser_list)
