@@ -69,7 +69,8 @@ app/src/main/java/com/pzarubin/tvslideshow/
 │   ├── albums/
 │   │   └── AlbumStore.kt      # локальный кэш данных публичных альбомов (JSON)
 │   ├── settings/
-│   │   └── SettingsStore.kt   # настройки показа
+│   │   ├── SettingsStore.kt   # настройки показа
+│   │   └── ResumeStore.kt     # последний показанный слайд по источнику
 │   └── source/
 │       ├── MediaSource.kt     # интерфейс источника
 │       ├── MediaItem.kt       # модель слайда (фото/видео)
