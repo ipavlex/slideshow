@@ -3,12 +3,9 @@ package com.pzarubin.tvslideshow.playback
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.graphics.RectF
-import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
@@ -22,10 +19,10 @@ import kotlin.random.Random
  * (CENTER_CROP) и медленно масштабируется + сдвигается (pan) в случайном
  * направлении. Направление зума и сдвига выбирается случайно для разнообразия.
  *
- * Рисование идёт через [BitmapShader] с режимом [Shader.TileMode.CLAMP]:
- * билинейный фильтр на краях bitmap'а семплирует «снаружи» (прозрачные
- * пиксели), из-за чего при плавном зуме края изображения мерцают. CLAMP
- * прижимает семплирование к крайним пикселям — края остаются стабильными.
+ * Отрисовка — прямой [Canvas.drawBitmap] с матрицей: вариант через
+ * [BitmapShader] приводил к чёрным кадрам на ТВ-устройствах — шейдер
+ * обращается к пикселям bitmap'а на RenderThread, а приложение интенсивно
+ * переиспользует и recycle-ит bitmap'ы при каждой смене слайда.
  *
  * Амплитуда pan клампится по фактическому запасу каждой оси (поле в
  * letterbox-режиме или переполнение в cover-режиме), чтобы край изображения
@@ -38,10 +35,7 @@ class KenBurnsView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     private val matrix = Matrix()
-    private val srcRect = RectF()
-    private val dstRect = RectF()
-    private val paint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
-    private var shader: BitmapShader? = null
+    private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
     private var bitmap: Bitmap? = null
     private var animator: ValueAnimator? = null
 
@@ -52,11 +46,6 @@ class KenBurnsView @JvmOverloads constructor(
     fun setImageBitmap(bmp: Bitmap?) {
         cancel()
         bitmap = bmp
-        // Шейдер держит ссылку на bitmap — пересоздаём при каждой смене,
-        // иначе после recycle старого bitmap'а получим краш при отрисовке.
-        shader = bmp?.let {
-            BitmapShader(it, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        }
         zoom = 1f
         panX = 0f
         panY = 0f
@@ -102,7 +91,6 @@ class KenBurnsView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         val bmp = bitmap ?: return
-        val sh = shader ?: return
         if (bmp.isRecycled) return
         val vw = width.toFloat()
         val vh = height.toFloat()
@@ -118,12 +106,7 @@ class KenBurnsView @JvmOverloads constructor(
             (vw - bw * scale) / 2f + panX,
             (vh - bh * scale) / 2f + panY
         )
-        sh.setLocalMatrix(matrix)
-        // Рисуем ровно прямоугольник, в который ложится bitmap: за его
-        // пределами CLAMP-шейдер «размазал» бы крайние пиксели по экрану.
-        srcRect.set(0f, 0f, bw, bh)
-        matrix.mapRect(dstRect, srcRect)
-        canvas.drawRect(dstRect, paint)
+        canvas.drawBitmap(bmp, matrix, paint)
     }
 
     /** Базовый масштаб показа: cover или letterbox — см. [SlideFit]. */
