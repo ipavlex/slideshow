@@ -34,6 +34,8 @@ class SlideshowEngine(
 
     private var index = 0
     private var tickJob: Job? = null
+    private var tickStartedAt = 0L
+    private var tickDurationMs = 0L
 
     /** Идёт декодирование текущего фото — таймер ждёт [notifyPhotoShown]. */
     private var loadingPhoto = false
@@ -126,13 +128,19 @@ class SlideshowEngine(
     }
 
     private fun scheduleNext() {
-        tickJob?.cancel()
-        tickJob = null
         val item = currentItem
         if (item.kind == MediaItem.Kind.VIDEO) return  // видео: ждём завершения
+        val durationMs = durationResolver(item) / speedMultiplier
+        startTick(durationMs.toLong().coerceAtLeast(MIN_TICK_MS))
+    }
+
+    /** Запускает таймер перехода на [delayMs] и запоминает момент старта. */
+    private fun startTick(delayMs: Long) {
+        tickJob?.cancel()
+        tickDurationMs = delayMs
+        tickStartedAt = android.os.SystemClock.elapsedRealtime()
         tickJob = scope.launch {
-            val durationMs = durationResolver(item) / speedMultiplier
-            delay(durationMs.toLong().coerceAtLeast(250L))
+            delay(delayMs)
             moveBy(1)
         }
     }
@@ -145,13 +153,21 @@ class SlideshowEngine(
     }
 
     private fun setSpeed(value: Float) {
+        val old = speedMultiplier
         speedMultiplier = value
         onSpeedChanged?.invoke(value)
-        // Во время загрузки фото таймер не трогаем — новая скорость будет
-        // учтена в notifyPhotoShown; у видео таймера нет.
-        if (state == State.PLAYING && !loadingPhoto &&
-            currentItem.kind == MediaItem.Kind.PHOTO
-        ) scheduleNext()
+        // Во время загрузки фото таймера нет — новая скорость будет учтена
+        // в notifyPhotoShown; у видео таймера нет.
+        if (state != State.PLAYING || loadingPhoto ||
+            currentItem.kind != MediaItem.Kind.PHOTO || tickJob == null
+        ) return
+        // Пересчитываем ОСТАТОК времени показа под новую скорость, а не
+        // перезапускаем полную длительность: иначе «быстрее» посреди слайда
+        // внезапно продлевало его показ.
+        val elapsed = android.os.SystemClock.elapsedRealtime() - tickStartedAt
+        val remaining = (tickDurationMs - elapsed).coerceAtLeast(0L)
+        val newDelay = (remaining * old / value).toLong().coerceAtLeast(MIN_TICK_MS)
+        startTick(newDelay)
     }
 
     private fun setState(s: State) {
@@ -161,5 +177,6 @@ class SlideshowEngine(
 
     private companion object {
         val SPEEDS = listOf(0.25f, 0.5f, 1f, 1.5f, 2f, 4f)
+        const val MIN_TICK_MS = 250L
     }
 }
