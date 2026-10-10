@@ -17,7 +17,7 @@ class FolderSource(
     override suspend fun list(): List<MediaItem> = withContext(Dispatchers.IO) {
         val files = mutableListOf<File>()
         collectFiles(rootDir, files)
-        files.filter { it.isFile && (isImage(it.name) || isVideo(it.name)) }
+        files.filter { it.isFile && it.length() > 0L && (isImage(it.name) || isVideo(it.name)) }
             .sortedBy { it.name.lowercase() }
             .map { file ->
                 MediaItem(

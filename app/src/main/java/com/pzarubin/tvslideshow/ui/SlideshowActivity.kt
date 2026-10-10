@@ -176,12 +176,17 @@ class SlideshowActivity : AppCompatActivity() {
                     } else {
                         null
                     }
-                    if (gen == generation && bmp != null) {
-                        withContext(Dispatchers.Main) {
-                            slideshowView.showPhoto(bmp, duration)
-                        }
-                    } else {
+                    if (gen != generation) {
                         bmp?.recycle()
+                        return@launch
+                    }
+                    withContext(Dispatchers.Main) {
+                        if (bmp != null) {
+                            slideshowView.showPhoto(bmp, duration)
+                        } else {
+                            // Пустое/битое фото — пропускаем к следующему слайду.
+                            engine?.next()
+                        }
                     }
                 }
             }

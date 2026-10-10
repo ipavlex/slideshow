@@ -108,7 +108,7 @@ class FolderBrowserActivity : AppCompatActivity() {
                 .filter { !MediaFileTypes.isIgnored(it.name) }
             val folders = children.filter { it.isDirectory }.sortedBy { it.name.lowercase() }
             val media = children
-                .filter { it.isFile && (MediaFileTypes.isImage(it.name) || MediaFileTypes.isVideo(it.name)) }
+                .filter { it.isFile && it.length() > 0L && (MediaFileTypes.isImage(it.name) || MediaFileTypes.isVideo(it.name)) }
                 .sortedBy { it.name.lowercase() }
 
             val list = mutableListOf<BrowserRow>()
