@@ -2,8 +2,11 @@
 <resources>
     <string name="app_name">TV Слайдшоу</string>
     <string name="choose_folder_hint">Выберите папку с фотографиями и видео</string>
+    <string name="choose_local_folder">Выбрать локальную папку</string>
+    <string name="folder_picker_unavailable">На этом устройстве нет системного выбора папок</string>
     <string name="choose_ken_burns">Ken Burns</string>
     <string name="choose_classic">Классика</string>
+    <string name="setting_mode">Режим: %1$s</string>
     <string name="choose_yandex">Яндекс.Диск</string>
     <string name="no_media_found">В выбранной папке нет фотографий или видео</string>
     <string name="speed_value">Скорость: %1$s×</string>
@@ -12,6 +15,7 @@
     <string name="yandex_title">Яндекс.Диск</string>
     <string name="yandex_instruction">На телефоне или компьютере откройте:</string>
     <string name="yandex_code_label">И введите код:</string>
+    <string name="yandex_qr_hint">QR-код для входа</string>
     <string name="yandex_requesting">Получение кода…</string>
     <string name="yandex_waiting">Ожидание подтверждения…</string>
     <string name="yandex_success">Авторизовано!</string>

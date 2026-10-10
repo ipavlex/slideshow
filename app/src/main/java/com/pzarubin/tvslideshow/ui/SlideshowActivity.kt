@@ -88,9 +88,7 @@ class SlideshowActivity : AppCompatActivity() {
             source = LocalFolderSource(this, treeUri, settings.recursive)
         }
 
-        mode = SlideMode.valueOf(
-            intent.getStringExtra(EXTRA_MODE) ?: SlideMode.KEN_BURNS.name
-        )
+        mode = settings.mode
         photoDuration = settings.photoDurationMs.takeIf { it > 0L } ?: mode.photoDurationMs
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -112,15 +110,21 @@ class SlideshowActivity : AppCompatActivity() {
         setContentView(root)
         bindOsdViews()
 
-        mediaSession = MediaSession.Builder(this, slideshowView.player)
-            .setSessionActivity(
-                PendingIntent.getActivity(
-                    this, 0,
-                    Intent(this, SlideshowActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        // MediaSession (карточка Now Playing) — опционально; не роняем слайдшоу,
+        // если media3-session не может инициализироваться на этом устройстве.
+        try {
+            mediaSession = MediaSession.Builder(this, slideshowView.player)
+                .setSessionActivity(
+                    PendingIntent.getActivity(
+                        this, 0,
+                        Intent(this, SlideshowActivity::class.java),
+                        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                    )
                 )
-            )
-            .build()
+                .build()
+        } catch (e: Exception) {
+            mediaSession = null
+        }
 
         startOsdTicker()
 
@@ -308,7 +312,6 @@ class SlideshowActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_TREE_URI = "extra_tree_uri"
-        const val EXTRA_MODE = "extra_mode"
         const val EXTRA_SOURCE_TYPE = "extra_source_type"
         const val EXTRA_YANDEX_PATH = "extra_yandex_path"
         const val SOURCE_LOCAL = "local"

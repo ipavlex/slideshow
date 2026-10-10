@@ -4,23 +4,20 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.pzarubin.tvslideshow.data.auth.TokenStore
-import com.pzarubin.tvslideshow.domain.SlideMode
 import com.pzarubin.tvslideshow.ui.SlideshowActivity
 import com.pzarubin.tvslideshow.ui.SettingsActivity
 import com.pzarubin.tvslideshow.ui.YandexBrowseActivity
 import com.pzarubin.tvslideshow.ui.YandexLoginActivity
 
 /**
- * Главный экран: выбор режима и папки.
- *
- * Фаза 1 — локальная папка через SAF. В Фазе 4 добавится Яндекс.Диск.
+ * Главный экран: выбор источника (локальная папка или Яндекс.Диск) и настройки.
+ * Режим слайдшоу (Ken Burns / Классика) настраивается в [SettingsActivity].
  */
 class MainActivity : AppCompatActivity() {
-
-    private var pendingMode = SlideMode.KEN_BURNS
 
     private val folderPicker =
         registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
@@ -31,10 +28,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Button>(R.id.btn_ken_burns)
-            .setOnClickListener { pickFolder(SlideMode.KEN_BURNS) }
-        findViewById<Button>(R.id.btn_classic)
-            .setOnClickListener { pickFolder(SlideMode.CLASSIC) }
+        findViewById<Button>(R.id.btn_local_folder)
+            .setOnClickListener { launchFolderPicker() }
 
         findViewById<Button>(R.id.btn_yandex).setOnClickListener {
             val target = if (TokenStore(this).hasToken) {
@@ -50,9 +45,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun pickFolder(mode: SlideMode) {
-        pendingMode = mode
-        folderPicker.launch(null)
+    private fun launchFolderPicker() {
+        try {
+            folderPicker.launch(null)
+        } catch (e: Exception) {
+            // Диагностика: показываем реальную причину, чтобы понять, чего не хватает.
+            val detail = "${e.javaClass.simpleName}: ${e.message}"
+            Toast.makeText(
+                this,
+                "${getString(R.string.folder_picker_unavailable)}\n$detail",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
 
     private fun onFolderPicked(uri: Uri) {
@@ -68,7 +72,6 @@ class MainActivity : AppCompatActivity() {
         startActivity(
             Intent(this, SlideshowActivity::class.java)
                 .putExtra(SlideshowActivity.EXTRA_TREE_URI, uri)
-                .putExtra(SlideshowActivity.EXTRA_MODE, pendingMode.name)
         )
     }
 }

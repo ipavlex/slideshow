@@ -2,6 +2,7 @@ package com.pzarubin.tvslideshow.data.settings
 
 import android.content.Context
 import com.pzarubin.tvslideshow.domain.PlaylistBuilder
+import com.pzarubin.tvslideshow.domain.SlideMode
 
 /**
  * Настройки слайдшоу, сохраняемые в SharedPreferences.
@@ -21,6 +22,15 @@ class SettingsStore(context: Context) {
     var shuffle: Boolean
         get() = prefs.getBoolean("shuffle", false)
         set(v) = prefs.edit().putBoolean("shuffle", v).apply()
+
+    /** Режим слайдшоу: Ken Burns или Классика. */
+    var mode: SlideMode
+        get() = runCatching {
+            SlideMode.valueOf(
+                prefs.getString("mode", SlideMode.KEN_BURNS.name) ?: SlideMode.KEN_BURNS.name
+            )
+        }.getOrDefault(SlideMode.KEN_BURNS)
+        set(v) = prefs.edit().putString("mode", v.name).apply()
 
     /** 0 — авто (5с «Классика» / 7с «Ken Burns»), иначе явная длительность в мс. */
     var photoDurationMs: Long

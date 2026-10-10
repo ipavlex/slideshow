@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Родительская тема из библиотеки leanback. -->
-    <style name="Theme.TvSlideshow" parent="Theme.Leanback">
+    <!-- AppCompatActivity требует тему AppCompat (не Leanback). -->
+    <style name="Theme.TvSlideshow" parent="Theme.AppCompat.NoActionBar">
         <item name="android:colorPrimary">@color/primary</item>
         <item name="android:windowBackground">@color/background</item>
+        <item name="android:windowFullscreen">true</item>
     </style>
 </resources>

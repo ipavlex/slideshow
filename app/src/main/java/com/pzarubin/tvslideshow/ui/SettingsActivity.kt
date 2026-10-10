@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
 import com.pzarubin.tvslideshow.domain.PlaylistBuilder
+import com.pzarubin.tvslideshow.domain.SlideMode
 
 /**
  * Экран настроек слайдшоу: порядок, перемешивание, длительность фото,
@@ -22,11 +23,20 @@ class SettingsActivity : AppCompatActivity() {
 
         settings = SettingsStore(this)
 
+        val btnMode = findViewById<Button>(R.id.setting_mode)
         val btnOrder = findViewById<Button>(R.id.setting_order)
         val btnShuffle = findViewById<Button>(R.id.setting_shuffle)
         val btnDuration = findViewById<Button>(R.id.setting_duration)
         val btnRecursive = findViewById<Button>(R.id.setting_recursive)
 
+        btnMode.setOnClickListener {
+            settings.mode = if (settings.mode == SlideMode.KEN_BURNS) {
+                SlideMode.CLASSIC
+            } else {
+                SlideMode.KEN_BURNS
+            }
+            updateMode(btnMode)
+        }
         btnOrder.setOnClickListener {
             settings.order = when (settings.order) {
                 PlaylistBuilder.Order.NAME -> PlaylistBuilder.Order.DATE
@@ -54,6 +64,16 @@ class SettingsActivity : AppCompatActivity() {
         updateShuffle(btnShuffle)
         updateDuration(btnDuration)
         updateRecursive(btnRecursive)
+        updateMode(btnMode)
+    }
+
+    private fun updateMode(btn: Button) {
+        val label = if (settings.mode == SlideMode.KEN_BURNS) {
+            getString(R.string.choose_ken_burns)
+        } else {
+            getString(R.string.choose_classic)
+        }
+        btn.text = getString(R.string.setting_mode, label)
     }
 
     private fun updateOrder(btn: Button) {

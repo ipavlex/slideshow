@@ -1,10 +1,16 @@
 package com.pzarubin.tvslideshow.ui
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.common.BitMatrix
+import com.google.zxing.qrcode.QRCodeWriter
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.auth.YandexAuth
@@ -26,6 +32,7 @@ class YandexLoginActivity : AppCompatActivity() {
 
         val urlView = findViewById<TextView>(R.id.login_url)
         val codeView = findViewById<TextView>(R.id.login_code)
+        val qrView = findViewById<ImageView>(R.id.login_qr)
         statusView = findViewById(R.id.login_status)
 
         val tokenStore = TokenStore(this)
@@ -36,6 +43,7 @@ class YandexLoginActivity : AppCompatActivity() {
                 val code = YandexAuth.requestDeviceCode(YandexConfig.CLIENT_ID, tokenStore.deviceId)
                 urlView.text = code.verificationUrl
                 codeView.text = code.userCode
+                qrView.setImageBitmap(generateQrCode(code.verificationUrl, 512))
                 statusView.text = getString(R.string.yandex_waiting)
 
                 var interval = code.intervalSeconds.coerceAtLeast(1)
@@ -72,5 +80,16 @@ class YandexLoginActivity : AppCompatActivity() {
                 statusView.text = e.message ?: getString(R.string.yandex_error)
             }
         }
+    }
+
+    private fun generateQrCode(text: String, size: Int): Bitmap {
+        val matrix: BitMatrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size)
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        for (x in 0 until size) {
+            for (y in 0 until size) {
+                bmp.setPixel(x, y, if (matrix[x, y]) Color.BLACK else Color.WHITE)
+            }
+        }
+        return bmp
     }
 }

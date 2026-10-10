@@ -25,20 +25,12 @@
         android:textSize="18sp" />
 
     <Button
-        android:id="@+id/btn_ken_burns"
+        android:id="@+id/btn_local_folder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:minWidth="360dp"
-        android:text="@string/choose_ken_burns" />
-
-    <Button
-        android:id="@+id/btn_classic"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:minWidth="360dp"
-        android:text="@string/choose_classic" />
+        android:text="@string/choose_local_folder" />
 
     <Button
         android:id="@+id/btn_yandex"
