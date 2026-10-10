@@ -90,6 +90,15 @@ class SlideshowView @JvmOverloads constructor(
         val incoming = photoLayers[incomingIdx]
         val outgoing = photoLayers[outgoingIdx]
 
+        // На время кроссфейда замораживаем уходящий слой: его Ken Burns
+        // перестаёт инвалидировать кадр, и fade композитится дёшево —
+        // каждый кадр перерисовывается только входящий слой.
+        (outgoing as? KenBurnsView)?.cancel()
+
+        // Сначала снимаем bitmap со слоя (сбрасывает шейдер в KenBurnsView),
+        // и только потом освобождаем память — иначе слой мог бы отрисовать
+        // уже освобождённый bitmap.
+        clearPhotoLayer(incoming)
         bitmaps[incomingIdx]?.takeIf { !it.isRecycled }?.recycle()
         bitmaps[incomingIdx] = bitmap
         setPhotoBitmap(incoming, bitmap, durationMs)
@@ -172,7 +181,9 @@ class SlideshowView @JvmOverloads constructor(
 
     fun stop() {
         photoLayers.forEach { it.animate().cancel() }
-        (photoLayers[frontIndex] as? KenBurnsView)?.cancel()
+        // Снимаем bitmap'ы со слоёв до recycle — слои не должны остаться
+        // со ссылками на освобождённую память.
+        photoLayers.forEach { clearPhotoLayer(it) }
         bitmaps.forEach { it?.takeIf { b -> !b.isRecycled }?.recycle() }
         bitmaps.fill(null)
         player.release()

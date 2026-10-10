@@ -3,12 +3,16 @@ package com.pzarubin.tvslideshow.playback
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
@@ -17,6 +21,16 @@ import kotlin.random.Random
  * Кастомная View с эффектом «Кен Бёрнс»: изображение заполняет экран
  * (CENTER_CROP) и медленно масштабируется + сдвигается (pan) в случайном
  * направлении. Направление зума и сдвига выбирается случайно для разнообразия.
+ *
+ * Рисование идёт через [BitmapShader] с режимом [Shader.TileMode.CLAMP]:
+ * билинейный фильтр на краях bitmap'а семплирует «снаружи» (прозрачные
+ * пиксели), из-за чего при плавном зуме края изображения мерцают. CLAMP
+ * прижимает семплирование к крайним пикселям — края остаются стабильными.
+ *
+ * Амплитуда pan клампится по фактическому запасу каждой оси (поле в
+ * letterbox-режиме или переполнение в cover-режиме), чтобы край изображения
+ * никогда не пересекал границу экрана — иначе при zoom-out появляются
+ * «дёргающиеся» чёрные полосы.
  */
 class KenBurnsView @JvmOverloads constructor(
     context: Context,
@@ -24,7 +38,10 @@ class KenBurnsView @JvmOverloads constructor(
 ) : View(context, attrs) {
 
     private val matrix = Matrix()
-    private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
+    private val srcRect = RectF()
+    private val dstRect = RectF()
+    private val paint = Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG)
+    private var shader: BitmapShader? = null
     private var bitmap: Bitmap? = null
     private var animator: ValueAnimator? = null
 
@@ -35,6 +52,11 @@ class KenBurnsView @JvmOverloads constructor(
     fun setImageBitmap(bmp: Bitmap?) {
         cancel()
         bitmap = bmp
+        // Шейдер держит ссылку на bitmap — пересоздаём при каждой смене,
+        // иначе после recycle старого bitmap'а получим краш при отрисовке.
+        shader = bmp?.let {
+            BitmapShader(it, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        }
         zoom = 1f
         panX = 0f
         panY = 0f
@@ -45,12 +67,19 @@ class KenBurnsView @JvmOverloads constructor(
         cancel()
         val bmp = bitmap ?: return
         if (bmp.isRecycled || durationMs <= 0L) return
+        val vw = width.toFloat()
+        val vh = height.toFloat()
+        if (vw <= 0f || vh <= 0f) return
 
         val zoomIn = Random.nextBoolean()
-        val dirX = if (Random.nextBoolean()) 1f else -1f
-        val dirY = if (Random.nextBoolean()) 1f else -1f
         val start = if (zoomIn) 1f else KEN_BURNS_SCALE
         val end = if (zoomIn) KEN_BURNS_SCALE else 1f
+
+        val base = baseScale(bmp, vw, vh)
+        val ampX = panAmplitude(bmp.width.toFloat(), base, start, end, vw)
+        val ampY = panAmplitude(bmp.height.toFloat(), base, start, end, vh)
+        val dirX = if (Random.nextBoolean()) 1f else -1f
+        val dirY = if (Random.nextBoolean()) 1f else -1f
 
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
             this.duration = durationMs
@@ -58,8 +87,8 @@ class KenBurnsView @JvmOverloads constructor(
             addUpdateListener { va ->
                 val t = va.animatedValue as Float
                 zoom = start + (end - start) * t
-                panX = dirX * PAN_FRACTION * width * t
-                panY = dirY * PAN_FRACTION * height * t
+                panX = dirX * ampX * t
+                panY = dirY * ampY * t
                 invalidate()
             }
             start()
@@ -73,6 +102,7 @@ class KenBurnsView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         val bmp = bitmap ?: return
+        val sh = shader ?: return
         if (bmp.isRecycled) return
         val vw = width.toFloat()
         val vh = height.toFloat()
@@ -80,14 +110,7 @@ class KenBurnsView @JvmOverloads constructor(
 
         val bw = bmp.width.toFloat()
         val bh = bmp.height.toFloat()
-        // Близкие пропорции — заполняем экран (CENTER_CROP); сильно отличающиеся
-        // (вертикальные/квадратные/панорамы) — показываем целиком (letterbox).
-        val base = if (SlideFit.useLetterbox(bmp.width, bmp.height, width, height)) {
-            min(vw / bw, vh / bh)
-        } else {
-            max(vw / bw, vh / bh)
-        }
-        val scale = base * zoom
+        val scale = baseScale(bmp, vw, vh) * zoom
 
         matrix.reset()
         matrix.postScale(scale, scale)
@@ -95,7 +118,46 @@ class KenBurnsView @JvmOverloads constructor(
             (vw - bw * scale) / 2f + panX,
             (vh - bh * scale) / 2f + panY
         )
-        canvas.drawBitmap(bmp, matrix, paint)
+        sh.setLocalMatrix(matrix)
+        // Рисуем ровно прямоугольник, в который ложится bitmap: за его
+        // пределами CLAMP-шейдер «размазал» бы крайние пиксели по экрану.
+        srcRect.set(0f, 0f, bw, bh)
+        matrix.mapRect(dstRect, srcRect)
+        canvas.drawRect(dstRect, paint)
+    }
+
+    /** Базовый масштаб показа: cover или letterbox — см. [SlideFit]. */
+    private fun baseScale(bmp: Bitmap, vw: Float, vh: Float): Float {
+        val bw = bmp.width.toFloat()
+        val bh = bmp.height.toFloat()
+        return if (SlideFit.useLetterbox(bmp.width, bmp.height, width, height)) {
+            min(vw / bw, vh / bh)
+        } else {
+            max(vw / bw, vh / bh)
+        }
+    }
+
+    /**
+     * Максимальная амплитуда pan по одной оси: на протяжении всей анимации
+     * |pan·t| не должен превышать запас |dim·base·zoom(t) − viewDim| / 2 —
+     * иначе край изображения пересечёт границу экрана. Запас нелинейный,
+     * поэтому берём минимум по выборке моментов времени.
+     */
+    private fun panAmplitude(
+        dim: Float,
+        base: Float,
+        start: Float,
+        end: Float,
+        viewDim: Float
+    ): Float {
+        var bound = Float.MAX_VALUE
+        for (i in 1..PAN_SAMPLES) {
+            val t = i.toFloat() / PAN_SAMPLES
+            val zoom = start + (end - start) * t
+            val slack = abs(dim * base * zoom - viewDim) / 2f
+            bound = min(bound, slack / t)
+        }
+        return (PAN_FRACTION * viewDim).coerceAtMost(bound)
     }
 
     override fun onDetachedFromWindow() {
@@ -109,5 +171,8 @@ class KenBurnsView @JvmOverloads constructor(
 
         /** Доля панорамирования от размера View (в пределах запаса зума). */
         const val PAN_FRACTION = 0.04f
+
+        /** Выборка моментов времени для расчёта лимита pan. */
+        private const val PAN_SAMPLES = 24
     }
 }

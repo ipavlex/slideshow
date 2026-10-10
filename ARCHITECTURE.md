@@ -80,7 +80,8 @@ app/src/main/java/com/pzarubin/tvslideshow/
 │   └── SlideMode.kt           # KEN_BURNS / CLASSIC
 ├── playback/
 │   ├── SlideshowView.kt       # контейнер, оркестрация слайдов
-│   ├── KenBurnsView.kt        # кастомная view: pan+zoom
+│   ├── KenBurnsView.kt        # кастомная view: pan+zoom (BitmapShader CLAMP,
+│   │                          #  pan клампится по запасу оси — без дёрганья краёв)
 │   └── BitmapLoader.kt        # декодирование изображений
 └── ui/
     ├── SlideshowActivity.kt   # полноэкранный показ
@@ -187,7 +188,7 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 | Риск | Митигация |
 |---|---|
 | SAF-пикер на TV неудобен | Свой браузер папок для Диска (`YandexBrowseActivity`) |
-| Плавность Ken Burns на слабом GPU | Аппаратное декодирование, ограничение размера декодируемых Bitmap (`BitmapLoader`) |
+| Плавность Ken Burns на слабом GPU | Аппаратное декодирование, ограничение размера декодируемых Bitmap (`BitmapLoader`); заморозка уходящего слоя на время кроссфейда; отрисовка через `BitmapShader` (CLAMP) без мерцания краёв |
 | Большие видео (4K) на Mi Box | Прогрессивная загрузка, ограничение разрешения при необходимости |
 | OAuth Я.Диск без браузера | Device-code flow решает; хранение refresh-token в SharedPreferences |
 | Отзыв SAF-разрешения / перезагрузка | Пере-валидация URI при старте, повторный выбор папки |
