@@ -11,6 +11,8 @@
     <string name="browser_select">Выбрать эту папку</string>
     <string name="storage_access_needed">Нужен доступ к файлам, чтобы выбрать папку</string>
     <string name="browser_select_root_hint">Сначала откройте диск и выберите папку</string>
+    <string name="badge_photo">ФОТО</string>
+    <string name="badge_video">ВИДЕО</string>
     <string name="choose_ken_burns">Ken Burns</string>
     <string name="choose_classic">Классика</string>
     <string name="setting_mode">Режим: %1$s</string>

@@ -44,20 +44,7 @@ class FolderSource(
         }
     }
 
-    private fun isImage(name: String): Boolean = extension(name) in IMAGE_EXTENSIONS
+    private fun isImage(name: String): Boolean = MediaFileTypes.isImage(name)
 
-    private fun isVideo(name: String): Boolean = extension(name) in VIDEO_EXTENSIONS
-
-    private fun extension(name: String): String =
-        name.substringAfterLast('.', "").lowercase()
-
-    private companion object {
-        val IMAGE_EXTENSIONS = setOf(
-            "jpg", "jpeg", "png", "webp", "heic", "heif", "gif", "bmp"
-        )
-        val VIDEO_EXTENSIONS = setOf(
-            "mp4", "mkv", "webm", "avi", "mov", "m4v", "3gp", "ts", "m2ts",
-            "mpg", "mpeg", "flv", "wmv"
-        )
-    }
+    private fun isVideo(name: String): Boolean = MediaFileTypes.isVideo(name)
 }

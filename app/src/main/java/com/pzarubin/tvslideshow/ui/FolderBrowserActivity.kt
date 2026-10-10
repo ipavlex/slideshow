@@ -1,6 +1,7 @@
 package com.pzarubin.tvslideshow.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -8,7 +9,10 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
-import android.widget.ArrayAdapter
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.BaseAdapter
 import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
@@ -17,21 +21,24 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.pzarubin.tvslideshow.R
+import com.pzarubin.tvslideshow.data.source.MediaFileTypes
 import java.io.File
 
 /**
  * Встроенный браузер папок (внутренняя память + USB). Используется вместо
- * системного SAF-пикера, которого нет на части Android TV. Возвращает путь
- * к выбранной папке через [EXTRA_FOLDER_PATH].
+ * системного SAF-пикера, которого нет на части Android TV. Показывает вложенные
+ * папки, а также медиафайлы текущей папки (фото/видео) — чтобы было видно,
+ * что в папке есть контент. Возвращает путь выбранной папки через [EXTRA_FOLDER_PATH].
  */
 class FolderBrowserActivity : AppCompatActivity() {
 
     private lateinit var pathView: TextView
-    private lateinit var adapter: ArrayAdapter<String>
+    private lateinit var listView: ListView
+    private lateinit var adapter: BrowserAdapter
 
     private var currentDir: File? = null
     private var roots: List<Pair<File, String>> = emptyList()
-    private var entries: List<File> = emptyList()
+    private var rows: List<BrowserRow> = emptyList()
 
     private val readPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -43,10 +50,10 @@ class FolderBrowserActivity : AppCompatActivity() {
         setContentView(R.layout.activity_folder_browser)
 
         pathView = findViewById(R.id.browser_path)
-        val listView = findViewById<ListView>(R.id.browser_list)
+        listView = findViewById(R.id.browser_list)
         val selectBtn = findViewById<Button>(R.id.browser_select)
 
-        adapter = ArrayAdapter(this, R.layout.item_folder, android.R.id.text1, mutableListOf())
+        adapter = BrowserAdapter(this)
         listView.adapter = adapter
         listView.setOnItemClickListener { _, _, position, _ -> onEntryClick(position) }
         selectBtn.setOnClickListener { selectCurrent() }
@@ -89,35 +96,52 @@ class FolderBrowserActivity : AppCompatActivity() {
     }
 
     private fun load() {
-        adapter.clear()
         if (currentDir == null) {
             roots = storageRoots()
             pathView.text = getString(R.string.browser_root_title)
-            roots.forEach { adapter.add(it.second) }
+            rows = roots.map { BrowserRow(it.second, it.first, isFolder = true) }
         } else {
             val dir = currentDir!!
             pathView.text = dir.absolutePath
-            adapter.add(getString(R.string.browser_up))
-            entries = (dir.listFiles() ?: emptyArray())
-                .filter { it.isDirectory }
+
+            val children = dir.listFiles() ?: emptyArray()
+            val folders = children.filter { it.isDirectory }.sortedBy { it.name.lowercase() }
+            val media = children
+                .filter { it.isFile && (MediaFileTypes.isImage(it.name) || MediaFileTypes.isVideo(it.name)) }
                 .sortedBy { it.name.lowercase() }
-            entries.forEach { adapter.add(it.name) }
+
+            val list = mutableListOf<BrowserRow>()
+            list.add(BrowserRow(getString(R.string.browser_up), null, isFolder = true))
+            folders.forEach { list.add(BrowserRow(it.name, it, isFolder = true)) }
+            media.forEach {
+                list.add(
+                    BrowserRow(
+                        it.name,
+                        null,
+                        isFolder = false,
+                        isVideo = MediaFileTypes.isVideo(it.name)
+                    )
+                )
+            }
+            rows = list
         }
+        adapter.submit(rows)
     }
 
     private fun onEntryClick(position: Int) {
-        if (currentDir == null) {
-            currentDir = roots[position].first
-        } else if (position == 0) {
-            val parent = currentDir!!.parentFile
-            val isContainer = parent == null ||
-                parent.absolutePath == "/storage" ||
-                parent.absolutePath == "/storage/emulated"
-            currentDir = if (isContainer) null else parent
-        } else {
-            currentDir = entries[position - 1]
-        }
+        val row = rows.getOrNull(position) ?: return
+        if (!row.isFolder) return
+        currentDir = row.target ?: parentOf(currentDir)
         load()
+    }
+
+    private fun parentOf(dir: File?): File? {
+        val d = dir ?: return null
+        val parent = d.parentFile
+        val isContainer = parent == null ||
+            parent.absolutePath == "/storage" ||
+            parent.absolutePath == "/storage/emulated"
+        return if (isContainer) null else parent
     }
 
     private fun selectCurrent() {
@@ -148,5 +172,56 @@ class FolderBrowserActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_FOLDER_PATH = "extra_folder_path"
+    }
+}
+
+/** Строка списка: папка (кликабельная) или медиафайл (информационный). */
+private data class BrowserRow(
+    val label: String,
+    val target: File?,
+    val isFolder: Boolean,
+    val isVideo: Boolean = false
+)
+
+private class BrowserAdapter(private val context: Context) : BaseAdapter() {
+
+    private val rows = mutableListOf<BrowserRow>()
+
+    fun submit(newRows: List<BrowserRow>) {
+        rows.clear()
+        rows.addAll(newRows)
+        notifyDataSetChanged()
+    }
+
+    override fun getCount() = rows.size
+
+    override fun getItem(position: Int) = rows[position]
+
+    override fun getItemId(position: Int) = position.toLong()
+
+    // Только папки доступны для выбора/фокуса; медиафайлы — просто для информации.
+    override fun isEnabled(position: Int) = rows[position].isFolder
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        val view = convertView ?: LayoutInflater.from(context)
+            .inflate(R.layout.item_browser, parent, false)
+        val badge = view.findViewById<TextView>(R.id.badge)
+        val name = view.findViewById<TextView>(R.id.name)
+        val row = rows[position]
+
+        name.text = row.label
+        if (row.isFolder) {
+            view.setBackgroundResource(R.drawable.bg_tv_row)
+            name.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+            badge.visibility = View.GONE
+        } else {
+            view.background = null
+            name.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+            badge.visibility = View.VISIBLE
+            badge.text = context.getString(
+                if (row.isVideo) R.string.badge_video else R.string.badge_photo
+            )
+        }
+        return view
     }
 }
