@@ -180,6 +180,8 @@ class SlideshowActivity : AppCompatActivity() {
             if (currentItem?.kind == MediaItem.Kind.VIDEO) {
                 slideshowView.player.setPlaybackSpeed(speed)
             }
+            // Отклик на нажатие даже при выключенной плашке.
+            showOsd(force = true)
         }
         engine.start()
     }
@@ -324,8 +326,16 @@ class SlideshowActivity : AppCompatActivity() {
             KeyEvent.KEYCODE_DPAD_DOWN -> { e.speedDown(); true }
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { e.toggle(); true }
-            KeyEvent.KEYCODE_MEDIA_REWIND -> { slideshowView.seekVideoBy(-SEEK_STEP_MS); true }
-            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> { slideshowView.seekVideoBy(SEEK_STEP_MS); true }
+            KeyEvent.KEYCODE_MEDIA_REWIND -> {
+                slideshowView.seekVideoBy(-SEEK_STEP_MS)
+                showOsd(force = true)
+                true
+            }
+            KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                slideshowView.seekVideoBy(SEEK_STEP_MS)
+                showOsd(force = true)
+                true
+            }
             KeyEvent.KEYCODE_BACK -> { finish(); true }
             else -> super.onKeyDown(keyCode, event)
         }
@@ -333,8 +343,13 @@ class SlideshowActivity : AppCompatActivity() {
 
     // --- OSD ---
 
-    private fun showOsd() {
-        if (!osdEnabled) return
+    /**
+     * Показывает OSD. При выключенной настройке [showOsdEnabled] плашка
+     * показывается только принудительно ([force]) — как отклик на смену
+     * скорости или перемотку — и скрывается по таймауту как обычно.
+     */
+    private fun showOsd(force: Boolean = false) {
+        if (!osdEnabled && !force) return
         osdHideHandler.removeCallbacks(osdHideRunnable)
         updateOsdContent()
         osdOverlay.visibility = View.VISIBLE
