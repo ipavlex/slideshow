@@ -2,49 +2,58 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
+    android:background="@color/background"
+    android:gravity="center_vertical"
     android:orientation="vertical"
-    android:background="@color/background">
+    android:paddingStart="@dimen/screen_padding_horizontal"
+    android:paddingTop="@dimen/screen_padding_vertical"
+    android:paddingEnd="@dimen/screen_padding_horizontal"
+    android:paddingBottom="@dimen/screen_padding_vertical">
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="40dp"
+        android:fontFamily="sans-serif-medium"
         android:text="@string/app_name"
         android:textColor="@color/text_primary"
-        android:textSize="34sp" />
+        android:textSize="@dimen/text_title" />
+
+    <View
+        android:layout_width="64dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/primary" />
 
     <TextView
         android:id="@+id/hint"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="40dp"
         android:text="@string/choose_folder_hint"
         android:textColor="@color/text_secondary"
-        android:textSize="18sp" />
+        android:textSize="@dimen/text_body" />
 
     <Button
         android:id="@+id/btn_local_folder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:minWidth="360dp"
+        android:layout_marginBottom="@dimen/menu_item_spacing"
+        android:focusedByDefault="true"
         android:text="@string/choose_local_folder" />
 
     <Button
         android:id="@+id/btn_yandex"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:minWidth="360dp"
+        android:layout_marginBottom="@dimen/menu_item_spacing"
         android:text="@string/choose_yandex" />
 
     <Button
         android:id="@+id/btn_settings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:minWidth="360dp"
         android:text="@string/choose_settings" />
 
 </LinearLayout>

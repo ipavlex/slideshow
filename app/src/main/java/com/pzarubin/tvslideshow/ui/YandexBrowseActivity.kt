@@ -62,7 +62,7 @@ class YandexBrowseActivity : AppCompatActivity() {
 
                 listView.adapter = ArrayAdapter(
                     this@YandexBrowseActivity,
-                    android.R.layout.simple_list_item_1,
+                    R.layout.list_item_yandex,
                     labels
                 )
             } catch (e: Exception) {

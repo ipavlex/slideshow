@@ -1,7 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#FF0F1115</color>
+    <!-- Фоны -->
+    <color name="background">#FF0B0E14</color>
+    <color name="surface">#FF171B24</color>
+    <color name="surface_focused">#FF25304A</color>
+    <color name="surface_pressed">#FF1F2739</color>
+
+    <!-- Акцент -->
     <color name="primary">#FF3D5AFE</color>
-    <color name="text_primary">#FFFFFFFF</color>
-    <color name="text_secondary">#B3FFFFFF</color>
+    <color name="primary_soft">#FF8EA2FF</color>
+    <color name="focus_stroke">#FF9AB0FF</color>
+
+    <!-- Текст -->
+    <color name="text_primary">#FFF2F4F8</color>
+    <color name="text_secondary">#B3AEB6C4</color>
+    <color name="text_disabled">#66FFFFFF</color>
+
+    <!-- Нейтральный (для QR-карточки и прочего) -->
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
 </resources>

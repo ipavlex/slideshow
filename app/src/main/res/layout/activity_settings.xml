@@ -1,52 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical"
     android:background="@color/background"
-    android:padding="40dp">
+    android:fillViewport="true"
+    android:paddingStart="@dimen/screen_padding_horizontal"
+    android:paddingEnd="@dimen/screen_padding_horizontal"
+    android:scrollbars="none">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:text="@string/settings_title"
-        android:textColor="@color/text_primary"
-        android:textSize="34sp" />
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:paddingTop="@dimen/screen_padding_vertical"
+        android:paddingBottom="@dimen/screen_padding_vertical">
 
-    <Button
-        android:id="@+id/setting_mode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:minWidth="420dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/settings_title"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_screen_title" />
 
-    <Button
-        android:id="@+id/setting_order"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:minWidth="420dp" />
+        <View
+            android:layout_width="64dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="32dp"
+            android:background="@color/primary" />
 
-    <Button
-        android:id="@+id/setting_shuffle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:minWidth="420dp" />
+        <Button
+            android:id="@+id/setting_mode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/menu_item_spacing"
+            android:focusedByDefault="true" />
 
-    <Button
-        android:id="@+id/setting_duration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:minWidth="420dp" />
+        <Button
+            android:id="@+id/setting_order"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/menu_item_spacing" />
 
-    <Button
-        android:id="@+id/setting_recursive"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:minWidth="420dp" />
+        <Button
+            android:id="@+id/setting_shuffle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/menu_item_spacing" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/setting_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/menu_item_spacing" />
+
+        <Button
+            android:id="@+id/setting_recursive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+</ScrollView>

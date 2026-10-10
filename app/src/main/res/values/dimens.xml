@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Отступы экрана (TV-safe, с запасом от краёв overscan) -->
+    <dimen name="screen_padding_horizontal">96dp</dimen>
+    <dimen name="screen_padding_vertical">48dp</dimen>
+
+    <!-- Пункты меню -->
+    <dimen name="menu_item_min_width">480dp</dimen>
+    <dimen name="menu_item_height">64dp</dimen>
+    <dimen name="menu_item_spacing">16dp</dimen>
+    <dimen name="menu_item_padding">28dp</dimen>
+
+    <!-- Скругления и фокус -->
+    <dimen name="corner_medium">12dp</dimen>
+    <dimen name="corner_large">20dp</dimen>
+    <dimen name="focus_stroke_width">2dp</dimen>
+
+    <!-- Типографика (TV) -->
+    <dimen name="text_title">40sp</dimen>
+    <dimen name="text_screen_title">30sp</dimen>
+    <dimen name="text_menu">22sp</dimen>
+    <dimen name="text_body">18sp</dimen>
+    <dimen name="text_caption">16sp</dimen>
+    <dimen name="text_display">40sp</dimen>
+    <dimen name="text_qr_code">40sp</dimen>
+
+    <!-- QR -->
+    <dimen name="qr_size">220dp</dimen>
+    <dimen name="qr_card_padding">16dp</dimen>
+</resources>

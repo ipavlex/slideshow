@@ -2,29 +2,47 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background"
-    android:padding="32dp">
+    android:orientation="vertical"
+    android:paddingStart="@dimen/screen_padding_horizontal"
+    android:paddingTop="@dimen/screen_padding_vertical"
+    android:paddingEnd="@dimen/screen_padding_horizontal"
+    android:paddingBottom="@dimen/screen_padding_vertical">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
         android:text="@string/yandex_title"
         android:textColor="@color/text_primary"
-        android:textSize="30sp" />
+        android:textSize="@dimen/text_screen_title" />
+
+    <View
+        android:layout_width="64dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="16dp"
+        android:background="@color/primary" />
 
     <TextView
         android:id="@+id/browse_path"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="20dp"
+        android:ellipsize="start"
+        android:singleLine="true"
         android:textColor="@color/text_secondary"
-        android:textSize="18sp" />
+        android:textSize="@dimen/text_body" />
 
     <ListView
         android:id="@+id/browse_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="12dp"
+        android:drawSelectorOnTop="true"
+        android:listSelector="@drawable/bg_tv_row_focus"
+        android:paddingBottom="16dp" />
 </LinearLayout>
