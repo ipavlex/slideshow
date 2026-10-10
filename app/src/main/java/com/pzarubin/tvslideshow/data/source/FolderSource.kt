@@ -37,6 +37,7 @@ class FolderSource(
     private fun collectFiles(dir: File, out: MutableList<File>) {
         val children = dir.listFiles() ?: return
         for (f in children) {
+            if (MediaFileTypes.isIgnored(f.name)) continue
             when {
                 f.isDirectory -> if (recursive) collectFiles(f, out)
                 f.isFile -> out.add(f)

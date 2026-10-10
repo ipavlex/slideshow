@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
+import kotlin.math.min
 
 /**
  * Декодирует изображение из [Uri] с уменьшением до целевого размера
@@ -23,8 +24,15 @@ object BitmapLoader {
         val source = ImageDecoder.createSource(resolver, uri)
         ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
             decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-            if (info.size.width > targetW || info.size.height > targetH) {
-                decoder.setTargetSize(targetW, targetH)
+            val w = info.size.width
+            val h = info.size.height
+            if (w > targetW || h > targetH) {
+                // «Fit within», сохраняя пропорции — иначе фото растягивается.
+                val scale = min(targetW.toFloat() / w, targetH.toFloat() / h)
+                decoder.setTargetSize(
+                    (w * scale).toInt().coerceAtLeast(1),
+                    (h * scale).toInt().coerceAtLeast(1)
+                )
             }
         }
     } catch (e: Exception) {

@@ -104,7 +104,8 @@ class FolderBrowserActivity : AppCompatActivity() {
             val dir = currentDir!!
             pathView.text = dir.absolutePath
 
-            val children = dir.listFiles() ?: emptyArray()
+            val children = (dir.listFiles() ?: emptyArray())
+                .filter { !MediaFileTypes.isIgnored(it.name) }
             val folders = children.filter { it.isDirectory }.sortedBy { it.name.lowercase() }
             val media = children
                 .filter { it.isFile && (MediaFileTypes.isImage(it.name) || MediaFileTypes.isVideo(it.name)) }

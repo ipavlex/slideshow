@@ -16,6 +16,13 @@ object MediaFileTypes {
     fun isImage(name: String): Boolean = extension(name) in IMAGE_EXTENSIONS
     fun isVideo(name: String): Boolean = extension(name) in VIDEO_EXTENSIONS
 
+    /**
+     * Скрытые и служебные файлы/папки (создаёт macOS при копировании:
+     * `.DS_Store`, `._*`, `.Trashes`, `__MACOSX` и т.п.) — не показываем.
+     */
+    fun isIgnored(name: String): Boolean =
+        name.startsWith(".") || name == "__MACOSX"
+
     private fun extension(name: String): String =
         name.substringAfterLast('.', "").lowercase()
 }
