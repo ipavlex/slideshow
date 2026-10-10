@@ -2,8 +2,8 @@ package com.pzarubin.tvslideshow.ui
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
 import com.pzarubin.tvslideshow.domain.PlaylistBuilder
@@ -28,8 +28,8 @@ class SettingsActivity : AppCompatActivity() {
         val btnMode = findViewById<Button>(R.id.setting_mode)
         val btnOrder = findViewById<Button>(R.id.setting_order)
         val btnDuration = findViewById<Button>(R.id.setting_duration)
-        val swRecursive = findViewById<SwitchCompat>(R.id.setting_recursive)
-        val swShuffle = findViewById<SwitchCompat>(R.id.setting_shuffle)
+        val swRecursive = findViewById<Switch>(R.id.setting_recursive)
+        val swShuffle = findViewById<Switch>(R.id.setting_shuffle)
 
         btnMode.setOnClickListener {
             settings.mode = if (settings.mode == SlideMode.KEN_BURNS) {
