@@ -8,7 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.albums.AlbumStore
@@ -50,7 +50,7 @@ class AlbumCollectionActivity : AppCompatActivity() {
 
         grid = findViewById(R.id.albums_list)
         statusView = findViewById(R.id.albums_status)
-        grid.layoutManager = GridLayoutManager(this, GRID_COLUMNS)
+        grid.layoutManager = LinearLayoutManager(this)
 
         findViewById<Button>(R.id.btn_albums_back).setOnClickListener { finish() }
         findViewById<Button>(R.id.btn_albums_refresh).setOnClickListener { scan(forceRefresh = true) }
@@ -120,7 +120,7 @@ class AlbumCollectionActivity : AppCompatActivity() {
                 thumbFile = cover
             )
         }
-        grid.adapter = GridCardAdapter(lifecycleScope, cards) { position ->
+        grid.adapter = BrowserListAdapter(lifecycleScope, cards) { position ->
             startSlideshow(listOf(albums[position].first))
         }
     }
@@ -150,6 +150,5 @@ class AlbumCollectionActivity : AppCompatActivity() {
 
         /** Спец-папка по умолчанию — корень Диска. */
         const val DEFAULT_PATH = "disk:/_albums"
-        private const val GRID_COLUMNS = 5
     }
 }

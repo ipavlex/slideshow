@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.auth.TokenStore
@@ -66,6 +67,7 @@ class YandexBrowseActivity : AppCompatActivity() {
         currentPath = ROOT
         pathView.text = ""
         startButton.visibility = View.GONE
+        grid.layoutManager = GridLayoutManager(this, GRID_COLUMNS)
         val cards = listOf(
             GridCard(
                 label = getString(R.string.albums_open),
@@ -101,6 +103,7 @@ class YandexBrowseActivity : AppCompatActivity() {
         mode = Mode.BROWSE
         currentPath = ROOT
         startButton.visibility = View.VISIBLE
+        grid.layoutManager = LinearLayoutManager(this)
         loadEntries()
     }
 
@@ -115,11 +118,11 @@ class YandexBrowseActivity : AppCompatActivity() {
                             .thenBy { it.name.lowercase() }
                     )
 
-                grid.adapter = GridCardAdapter(
+                grid.adapter = BrowserListAdapter(
                     lifecycleScope,
                     entries.map { it.toCard() }
                 ) { position ->
-                    val entry = entries.getOrNull(position) ?: return@GridCardAdapter
+                    val entry = entries.getOrNull(position) ?: return@BrowserListAdapter
                     if (entry.isDir) {
                         currentPath = entry.path
                         loadEntries()
