@@ -11,6 +11,20 @@
     <string name="yandex_subtitle">Войти в аккаунт</string>
     <string name="settings">Настройки</string>
     <string name="settings_subtitle">Параметры приложения</string>
+    <string name="album_link">Альбом по ссылке</string>
+    <string name="album_link_subtitle">Публичный альбом Яндекс.Диска</string>
+    <string name="album_dialog_title">Ссылка на альбом</string>
+    <string name="album_dialog_hint">https://disk.yandex.ru/a/…</string>
+
+    <!-- Коллекция альбомов -->
+    <string name="albums_title">Альбомы</string>
+    <string name="albums_open">Альбомы</string>
+    <string name="albums_refresh">Обновить</string>
+    <string name="albums_loading">Загрузка альбомов…</string>
+    <string name="albums_progress">Альбом %1$d из %2$d…</string>
+    <string name="albums_empty">Папка «_albums» не найдена или пуста.\nСоздайте её в корне Диска, внутри — подпапки с именем-ID альбома.</string>
+    <string name="albums_count">%1$d фото</string>
+    <string name="albums_failed">Не удалось загрузить альбомов: %1$d</string>
     <string name="selected_local">Источник: локальная папка</string>
     <string name="selected_yandex">Источник: Яндекс Диск</string>
     <string name="supported_formats">Поддерживаются JPG, JPEG, PNG, BMP и GIF.</string>

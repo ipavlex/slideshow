@@ -7,7 +7,10 @@
 
 ## Возможности
 
-- Выбор источника: локальная папка (SAF / `ACTION_OPEN_DOCUMENT_TREE`) или Яндекс.Диск
+- Выбор источника: локальная папка (SAF / `ACTION_OPEN_DOCUMENT_TREE`),
+  Яндекс.Диск или публичный альбом Я.Диска по ссылке (`disk.yandex.ru/a/…`)
+- Коллекции альбомов: спец-папка `_albums` в корне Диска с ID/ссылками
+  альбомов — сетка с обложками, слайдшоу по альбому или по всем сразу
 - Фото: режимы **Ken Burns** (медленный pan+zoom) и **Классика** (статичное фото)
 - Видео: Media3 ExoPlayer, смешанный плейлист фото+видео, перемотка
 - Плавные кроссфейд-переходы между слайдами
@@ -74,11 +77,14 @@ APK: `app/build/outputs/apk/.../tvslideshow-<версия>.apk` (наприме�
 ```
 app/src/main/java/<package>/
 ├── data/
-│   ├── auth/       # OAuth Яндекс (device-code), хранение токенов
-│   ├── cache/      # файловый кэш (LRU) для Яндекс.Диска
-│   ├── settings/   # настройки (SharedPreferences)
-│   └── source/     # источники: LocalFolderSource (SAF), YandexDiskSource
-├── domain/         # SlideshowEngine, PlaylistBuilder, SlideMode
-├── playback/       # KenBurnsView, SlideshowView, BitmapLoader
-└── ui/             # MainActivity, SlideshowActivity, Yandex*, SettingsActivity
+│   ├── albums/       # локальный кэш данных публичных альбомов (AlbumStore)
+│   ├── auth/         # OAuth Яндекс (device-code), хранение токенов
+│   ├── cache/        # файловый кэш (LRU) для Яндекс.Диска
+│   ├── settings/     # настройки (SharedPreferences)
+│   └── source/       # источники: LocalFolderSource (SAF), YandexDiskSource,
+│                     # AlbumSource (публичные альбомы, YandexPublicAlbum)
+├── domain/           # SlideshowEngine, PlaylistBuilder, SlideMode
+├── playback/         # KenBurnsView, SlideshowView, BitmapLoader
+└── ui/               # MainActivity, SlideshowActivity, Yandex*, Album*,
+                      # SettingsActivity
 ```

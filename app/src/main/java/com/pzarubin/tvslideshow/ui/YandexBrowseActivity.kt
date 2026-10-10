@@ -39,6 +39,13 @@ class YandexBrowseActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btn_back).setOnClickListener { navigateBack() }
         findViewById<Button>(R.id.btn_start_slideshow).setOnClickListener { startSlideshowHere() }
+        findViewById<Button>(R.id.btn_albums).setOnClickListener {
+            // Спец-папка с альбомами — фиксированное имя в корне Диска.
+            startActivity(
+                Intent(this, AlbumCollectionActivity::class.java)
+                    .putExtra(AlbumCollectionActivity.EXTRA_DISK_PATH, ALBUMS_FOLDER)
+            )
+        }
 
         grid.layoutManager = GridLayoutManager(this, GRID_COLUMNS)
 
@@ -103,6 +110,9 @@ class YandexBrowseActivity : AppCompatActivity() {
 
     companion object {
         const val ROOT = "disk:/"
+
+        /** Спец-папка в корне Диска, в подпапках которой — ссылки на альбомы. */
+        const val ALBUMS_FOLDER = "disk:/_albums"
         private const val GRID_COLUMNS = 5
     }
 }

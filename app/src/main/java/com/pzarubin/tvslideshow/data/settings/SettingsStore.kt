@@ -45,4 +45,9 @@ class SettingsStore(context: Context) {
     var showOsd: Boolean
         get() = prefs.getBoolean("show_osd", true)
         set(v) = prefs.edit().putBoolean("show_osd", v).apply()
+
+    /** Последняя ссылка на публичный альбом Яндекс.Диска (для повторного запуска). */
+    var albumUrl: String
+        get() = prefs.getString("album_url", "") ?: ""
+        set(v) = prefs.edit().putString("album_url", v).apply()
 }

@@ -19,14 +19,17 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaSession
 import com.pzarubin.tvslideshow.R
+import com.pzarubin.tvslideshow.data.albums.AlbumStore
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
+import com.pzarubin.tvslideshow.data.source.AlbumSource
 import com.pzarubin.tvslideshow.data.source.FolderSource
 import com.pzarubin.tvslideshow.data.source.MediaItem
 import com.pzarubin.tvslideshow.data.source.MediaSource
 import com.pzarubin.tvslideshow.data.source.YandexClient
 import com.pzarubin.tvslideshow.data.source.YandexDiskSource
+import com.pzarubin.tvslideshow.data.source.YandexPublicAlbum
 import com.pzarubin.tvslideshow.domain.PlaylistBuilder
 import com.pzarubin.tvslideshow.domain.SlideMode
 import com.pzarubin.tvslideshow.domain.SlideshowEngine
@@ -87,6 +90,8 @@ class SlideshowActivity : AppCompatActivity() {
         val settings = SettingsStore(this)
 
         val sourceType = intent.getStringExtra(EXTRA_SOURCE_TYPE) ?: SOURCE_LOCAL
+        var albumUrl: String? = null
+        var albumIds: List<String>? = null
         if (sourceType == SOURCE_YANDEX) {
             val token = TokenStore(this).accessToken
             if (token == null) {
@@ -97,6 +102,18 @@ class SlideshowActivity : AppCompatActivity() {
                 YandexClient(TokenStore(this), SlideCache(this)),
                 intent.getStringExtra(EXTRA_YANDEX_PATH) ?: "disk:/"
             )
+        } else if (sourceType == SOURCE_ALBUM) {
+            albumUrl = intent.getStringExtra(EXTRA_ALBUM_URL)
+            if (albumUrl.isNullOrBlank()) {
+                finish()
+                return
+            }
+        } else if (sourceType == SOURCE_ALBUMS) {
+            albumIds = intent.getStringArrayListExtra(EXTRA_ALBUM_IDS)
+            if (albumIds.isNullOrEmpty()) {
+                finish()
+                return
+            }
         } else {
             val folderPath = intent.getStringExtra(EXTRA_FOLDER_PATH)
                 ?: run { finish(); return }
@@ -146,17 +163,43 @@ class SlideshowActivity : AppCompatActivity() {
         startOsdTicker()
 
         lifecycleScope.launch {
-            val items = PlaylistBuilder.build(source.list(), settings.order, settings.shuffle)
-            if (items.isEmpty()) {
+            try {
+                // Публичный альбом: источник создаётся асинхронно после bootstrap.
+                if (sourceType == SOURCE_ALBUM && !::source.isInitialized) {
+                    val api = YandexPublicAlbum()
+                    val album = api.open(albumUrl!!)
+                    source = AlbumSource(listOf(album), api, SlideCache(this@SlideshowActivity))
+                }
+                // Коллекция альбомов: данные из локального кэша, отсутствующие —
+                // догружаем по сети один раз.
+                if (sourceType == SOURCE_ALBUMS && !::source.isInitialized) {
+                    val store = AlbumStore(this@SlideshowActivity)
+                    val api = YandexPublicAlbum()
+                    val albums = albumIds!!.map { id ->
+                        store.get(id) ?: api.open(YandexPublicAlbum.albumUrl(id))
+                            .also { store.put(id, it) }
+                    }
+                    source = AlbumSource(albums, api, SlideCache(this@SlideshowActivity))
+                }
+                val items = PlaylistBuilder.build(source.list(), settings.order, settings.shuffle)
+                if (items.isEmpty()) {
+                    Toast.makeText(
+                        this@SlideshowActivity,
+                        R.string.no_media_found,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    finish()
+                    return@launch
+                }
+                startSlideshow(items)
+            } catch (e: Exception) {
                 Toast.makeText(
                     this@SlideshowActivity,
-                    R.string.no_media_found,
+                    e.message ?: getString(R.string.error_generic),
                     Toast.LENGTH_LONG
                 ).show()
                 finish()
-                return@launch
             }
-            startSlideshow(items)
         }
     }
 
@@ -436,8 +479,12 @@ class SlideshowActivity : AppCompatActivity() {
         const val EXTRA_FOLDER_PATH = "extra_folder_path"
         const val EXTRA_SOURCE_TYPE = "extra_source_type"
         const val EXTRA_YANDEX_PATH = "extra_yandex_path"
+        const val EXTRA_ALBUM_URL = "extra_album_url"
+        const val EXTRA_ALBUM_IDS = "extra_album_ids"
         const val SOURCE_LOCAL = "local"
         const val SOURCE_YANDEX = "yandex"
+        const val SOURCE_ALBUM = "album"
+        const val SOURCE_ALBUMS = "albums"
         const val SEEK_STEP_MS = 10_000L
         const val OSD_TIMEOUT_MS = 3000L
 

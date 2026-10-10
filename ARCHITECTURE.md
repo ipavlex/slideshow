@@ -66,6 +66,8 @@ app/src/main/java/com/pzarubin/tvslideshow/
 │   │   └── TokenStore.kt      # access/refresh токены, device_id
 │   ├── cache/
 │   │   └── SlideCache.kt      # файловый кэш для Яндекс.Диска
+│   ├── albums/
+│   │   └── AlbumStore.kt      # локальный кэш данных публичных альбомов (JSON)
 │   ├── settings/
 │   │   └── SettingsStore.kt   # настройки показа
 │   └── source/
@@ -73,7 +75,9 @@ app/src/main/java/com/pzarubin/tvslideshow/
 │       ├── MediaItem.kt       # модель слайда (фото/видео)
 │       ├── LocalFolderSource.kt   # SAF
 │       ├── YandexDiskSource.kt    # REST
-│       └── YandexClient.kt    # низкоуровневый REST-клиент Диска
+│       ├── YandexClient.kt    # низкоуровневый REST-клиент Диска
+│       ├── YandexPublicAlbum.kt   # веб-галерея публичных альбомов (недок. API)
+│       └── AlbumSource.kt     # источник: публичные альбомы Я.Диска
 ├── domain/
 │   ├── SlideshowEngine.kt     # машина состояний, таймер, перемотка
 │   ├── PlaylistBuilder.kt     # сортировка/перемешивание/фильтр
@@ -86,7 +90,8 @@ app/src/main/java/com/pzarubin/tvslideshow/
 └── ui/
     ├── SlideshowActivity.kt   # полноэкранный показ
     ├── YandexLoginActivity.kt # показ кода device-code
-    ├── YandexBrowseActivity.kt# выбор папки на Диске
+    ├── YandexBrowseActivity.kt# выбор папки на Диске (+ кнопка «Альбомы»)
+    ├── AlbumCollectionActivity.kt # сетка альбомов из спец-папки `_albums`
     └── SettingsActivity.kt    # настройки
 ```
 
@@ -128,6 +133,20 @@ data class MediaItem(
 - Листинг: `GET /v1/disk/resources?path=...`.
 - Загрузка: `GET /v1/disk/resources/download?path=...` → временная ссылка.
 - Обязательный локальный кэш (`SlideCache`) — стримить фото с Ken Burns по сети нельзя.
+
+**`AlbumSource` (публичные альбомы):**
+- Виртуальные альбомы недоступны через официальный REST API — используется
+  внутренний API веб-галереи (`YandexPublicAlbum`): bootstrap страницы
+  альбома (store-prefetch), сессионный `sk` + куки, повтор при `wrongSk`,
+  постраничный `fetch-album-list`. OAuth не нужен.
+- Фото отдаются готовыми preview-ссылками (xxxl), видео — скачиванием
+  оригинала через `album-download-url`. Всё кэшируется в `SlideCache`.
+- Два сценария: один альбом по ссылке (кнопка на главном экране, ссылка
+  запоминается в `SettingsStore`) и коллекция — спец-папка `_albums` в
+  корне Диска, в подпапках ID/ссылки альбомов; данные коллекции кэшируются
+  в `AlbumStore` (JSON в filesDir), «Обновить» — принудительный рескан.
+- Эндпоинт недокументирован: возможны капча и изменения формата — ошибки
+  показываются тостом, один недоступный альбом не ломает скан коллекции.
 
 ## 5. Модель слайдшоу
 

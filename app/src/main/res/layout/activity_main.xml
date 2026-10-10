@@ -112,11 +112,30 @@
             android:layout_height="@dimen/menu_card_height"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/small_spacing"
+            android:layout_marginEnd="@dimen/small_spacing"
             android:background="@drawable/bg_tv_button"
             android:drawableTop="@drawable/ic_settings_large"
             android:drawablePadding="@dimen/medium_spacing"
             android:gravity="center"
             android:text="@string/settings"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_menu"
+            android:padding="@dimen/menu_item_padding"
+            android:focusable="true"
+            android:clickable="true"
+            android:stateListAnimator="@animator/scale_on_focus"/>
+
+        <Button
+            android:id="@+id/btn_album"
+            android:layout_width="@dimen/zero_size"
+            android:layout_height="@dimen/menu_card_height"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/small_spacing"
+            android:background="@drawable/bg_tv_button"
+            android:drawableTop="@drawable/ic_photo_large"
+            android:drawablePadding="@dimen/medium_spacing"
+            android:gravity="center"
+            android:text="@string/album_link"
             android:textColor="@color/text_primary"
             android:textSize="@dimen/text_menu"
             android:padding="@dimen/menu_item_padding"
@@ -156,8 +175,18 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/small_spacing"
+            android:layout_marginEnd="@dimen/small_spacing"
             android:gravity="center_horizontal"
             android:text="@string/settings_subtitle"
+            style="@style/TextAppearance.TvSlideshow.Caption"/>
+        <TextView
+            android:id="@+id/album_hint"
+            android:layout_width="@dimen/zero_size"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/small_spacing"
+            android:gravity="center_horizontal"
+            android:text="@string/album_link_subtitle"
             style="@style/TextAppearance.TvSlideshow.Caption"/>
     </LinearLayout>
 
