@@ -3,7 +3,12 @@
     android:id="@android:id/text1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/list_item_bg"
-    android:padding="16dp"
+    android:background="@drawable/bg_tv_row"
+    android:ellipsize="end"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/menu_item_height"
+    android:paddingStart="@dimen/menu_item_padding"
+    android:paddingEnd="@dimen/menu_item_padding"
+    android:singleLine="true"
     android:textColor="@color/text_primary"
-    android:textSize="20sp" />
+    android:textSize="@dimen/text_menu" />
