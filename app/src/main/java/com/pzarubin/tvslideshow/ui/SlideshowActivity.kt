@@ -57,6 +57,9 @@ class SlideshowActivity : AppCompatActivity() {
     private var currentItem: MediaItem? = null
     private var playlist: List<MediaItem> = emptyList()
 
+    /** Настройка «показывать плашку (OSD)» — гейтится в [showOsd]. */
+    private var osdEnabled = true
+
     // Prefetch следующего фото-слайда: декодируем заранее, пока показывается
     // текущий, чтобы HEIC (медленный программный декод) не давал чёрный экран.
     private var prefetchJob: Job? = null
@@ -102,6 +105,7 @@ class SlideshowActivity : AppCompatActivity() {
 
         mode = settings.mode
         photoDuration = settings.photoDurationMs.takeIf { it > 0L } ?: mode.photoDurationMs
+        osdEnabled = settings.showOsd
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUi()
@@ -121,6 +125,7 @@ class SlideshowActivity : AppCompatActivity() {
         )
         setContentView(root)
         bindOsdViews()
+        if (!osdEnabled) osdOverlay.visibility = View.GONE
 
         // MediaSession (карточка Now Playing) — опционально; не роняем слайдшоу,
         // если media3-session не может инициализироваться на этом устройстве.
@@ -320,6 +325,7 @@ class SlideshowActivity : AppCompatActivity() {
     // --- OSD ---
 
     private fun showOsd() {
+        if (!osdEnabled) return
         osdHideHandler.removeCallbacks(osdHideRunnable)
         updateOsdContent()
         osdOverlay.visibility = View.VISIBLE

@@ -30,6 +30,7 @@ class SettingsActivity : AppCompatActivity() {
         val btnDuration = findViewById<Button>(R.id.setting_duration)
         val swRecursive = findViewById<Switch>(R.id.setting_recursive)
         val swShuffle = findViewById<Switch>(R.id.setting_shuffle)
+        val swOsd = findViewById<Switch>(R.id.setting_osd)
 
         btnMode.setOnClickListener {
             settings.mode = if (settings.mode == SlideMode.KEN_BURNS) {
@@ -58,6 +59,8 @@ class SettingsActivity : AppCompatActivity() {
         swRecursive.setOnCheckedChangeListener { _, checked -> settings.recursive = checked }
         swShuffle.isChecked = settings.shuffle
         swShuffle.setOnCheckedChangeListener { _, checked -> settings.shuffle = checked }
+        swOsd.isChecked = settings.showOsd
+        swOsd.setOnCheckedChangeListener { _, checked -> settings.showOsd = checked }
 
         findViewById<Button>(R.id.btn_settings_back).setOnClickListener { finish() }
 

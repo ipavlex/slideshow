@@ -81,6 +81,7 @@
     <string name="setting_order_value">По имени</string>
     <string name="setting_recursive_label">Включать вложенные папки</string>
     <string name="setting_shuffle_label">Случайный порядок</string>
+    <string name="setting_osd_label">Показывать плашку с названием файла</string>
     <string name="setting_recursive_summary">Добавлять фотографии из вложенных каталогов</string>
     <string name="setting_shuffle_summary">Перемешивать фотографии перед показом</string>
     <string name="setting_mode_fit">Вписать целиком</string>

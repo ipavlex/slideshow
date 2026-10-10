@@ -40,4 +40,9 @@ class SettingsStore(context: Context) {
     var recursive: Boolean
         get() = prefs.getBoolean("recursive", false)
         set(v) = prefs.edit().putBoolean("recursive", v).apply()
+
+    /** Показывать OSD-плашку (название файла, счётчик и пр.) поверх слайдшоу. */
+    var showOsd: Boolean
+        get() = prefs.getBoolean("show_osd", true)
+        set(v) = prefs.edit().putBoolean("show_osd", v).apply()
 }
