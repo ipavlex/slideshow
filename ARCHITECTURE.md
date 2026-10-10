@@ -86,12 +86,16 @@ app/src/main/java/com/pzarubin/tvslideshow/
 ├── playback/
 │   ├── SlideshowView.kt       # контейнер, оркестрация слайдов
 │   ├── KenBurnsView.kt        # кастомная view: pan+zoom (drawBitmap,
-│   │                          #  pan клампится по запасу оси — без дёрганья краёв)
+│   │                          #  pan клампится по запасу оси, отрисовка
+│   │                          #  выровнена по целым пикселям — без дрожания
+│   │                          #  краёв и чёрных кадров)
 │   └── BitmapLoader.kt        # декодирование изображений
 └── ui/
     ├── SlideshowActivity.kt   # полноэкранный показ
     ├── YandexLoginActivity.kt # показ кода device-code
-    ├── YandexBrowseActivity.kt# выбор папки на Диске (+ кнопка «Альбомы»)
+    ├── YandexBrowseActivity.kt# хаб Яндекс.Диска: «Альбомы» / «Файлы» /
+    │                          # «Ссылка на альбом»; «Файлы» — браузер папок
+    │                          # и фото-файлов Диска
     ├── AlbumCollectionActivity.kt # сетка альбомов из спец-папки `_albums`
     └── SettingsActivity.kt    # настройки
 ```

@@ -124,24 +124,6 @@
             android:focusable="true"
             android:clickable="true"
             android:stateListAnimator="@animator/scale_on_focus"/>
-
-        <Button
-            android:id="@+id/btn_album"
-            android:layout_width="@dimen/zero_size"
-            android:layout_height="@dimen/menu_card_height"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/small_spacing"
-            android:background="@drawable/bg_tv_button"
-            android:drawableTop="@drawable/ic_photo_large"
-            android:drawablePadding="@dimen/medium_spacing"
-            android:gravity="center"
-            android:text="@string/album_link"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_menu"
-            android:padding="@dimen/menu_item_padding"
-            android:focusable="true"
-            android:clickable="true"
-            android:stateListAnimator="@animator/scale_on_focus"/>
     </LinearLayout>
 
     <!-- Подсказки: margins/weight зеркалят ряд карточек — колонки совпадают. -->
@@ -179,27 +161,10 @@
             android:gravity="center_horizontal"
             android:text="@string/settings_subtitle"
             style="@style/TextAppearance.TvSlideshow.Caption"/>
-        <TextView
-            android:id="@+id/album_hint"
-            android:layout_width="@dimen/zero_size"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/small_spacing"
-            android:gravity="center_horizontal"
-            android:text="@string/album_link_subtitle"
-            style="@style/TextAppearance.TvSlideshow.Caption"/>
     </LinearLayout>
 
     <Space
         android:layout_width="match_parent"
         android:layout_height="@dimen/zero_size"
         android:layout_weight="1"/>
-
-    <!-- Нижняя строка о поддерживаемых форматах. -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="@string/supported_formats"
-        style="@style/TextAppearance.TvSlideshow.Caption"/>
 </LinearLayout>

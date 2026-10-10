@@ -26,7 +26,8 @@
     <dimen name="menu_card_focus_scale_z">4dp</dimen>
     <dimen name="header_height">72dp</dimen>
     <dimen name="browser_item_width">190dp</dimen>
-    <dimen name="browser_item_height">166dp</dimen>
+    <!-- Высота с запасом под название папки в две строки (без обрезки). -->
+    <dimen name="browser_item_height">190dp</dimen>
     <dimen name="thumbnail_height">80dp</dimen>
     <dimen name="list_row_height">72dp</dimen>
     <dimen name="section_spacing">24dp</dimen>

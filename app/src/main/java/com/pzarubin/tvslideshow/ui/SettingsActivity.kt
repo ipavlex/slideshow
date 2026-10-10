@@ -62,8 +62,6 @@ class SettingsActivity : AppCompatActivity() {
         swOsd.isChecked = settings.showOsd
         swOsd.setOnCheckedChangeListener { _, checked -> settings.showOsd = checked }
 
-        findViewById<Button>(R.id.btn_settings_back).setOnClickListener { finish() }
-
         updateMode(btnMode)
         updateOrder(btnOrder)
         updateDuration(btnDuration)

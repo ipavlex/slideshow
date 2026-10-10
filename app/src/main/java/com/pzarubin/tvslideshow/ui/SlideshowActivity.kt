@@ -254,7 +254,7 @@ class SlideshowActivity : AppCompatActivity() {
 
     /** Диалог «Продолжить / С начала» при наличии сохранённой позиции. */
     private fun askResume(startIndex: Int, onStart: (Int) -> Unit) {
-        AlertDialog.Builder(this)
+        val dialog = AlertDialog.Builder(this)
             .setTitle(R.string.resume_title)
             .setMessage(R.string.resume_message)
             .setPositiveButton(R.string.resume_continue) { _, _ -> onStart(startIndex) }
@@ -263,7 +263,12 @@ class SlideshowActivity : AppCompatActivity() {
                 onStart(0)
             }
             .setOnCancelListener { finish() }
-            .show()
+            .create()
+        // При повторном открытии слайдшоу фокус сразу на «Продолжить».
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).requestFocus()
+        }
+        dialog.show()
     }
 
     /** Строит стабильный ключ источника по параметрам запуска. */

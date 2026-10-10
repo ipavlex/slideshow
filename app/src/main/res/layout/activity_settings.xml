@@ -17,5 +17,4 @@
             <Switch android:id="@+id/setting_osd" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_osd_label" android:textColor="@color/text_primary" android:textSize="@dimen/text_body" android:padding="@dimen/menu_item_padding" android:focusable="true" android:thumbTint="@color/primary" android:trackTint="@color/primary_soft"/>
         </LinearLayout>
     </ScrollView>
-    <Button android:id="@+id/btn_settings_back" android:layout_width="match_parent" android:layout_height="@dimen/menu_item_height" android:background="@drawable/bg_tv_row" android:text="@string/back" android:textColor="@color/text_primary" android:textSize="@dimen/text_menu" android:padding="@dimen/menu_item_padding" android:focusable="true" android:clickable="true" android:stateListAnimator="@null" />
 </LinearLayout>

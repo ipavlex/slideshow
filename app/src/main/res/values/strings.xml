@@ -14,7 +14,8 @@
     <string name="album_link">Альбом по ссылке</string>
     <string name="album_link_subtitle">Публичный альбом Яндекс.Диска</string>
     <string name="album_dialog_title">Ссылка на альбом</string>
-    <string name="album_dialog_hint">https://disk.yandex.ru/a/…</string>
+    <string name="album_dialog_hint">ID альбома, например AbCdEf-_12</string>
+    <string name="album_dialog_prefix">https://disk.yandex.ru/a/</string>
 
     <!-- Коллекция альбомов -->
     <string name="albums_title">Альбомы</string>
@@ -27,12 +28,14 @@
     <string name="albums_failed">Не удалось загрузить альбомов: %1$d</string>
     <string name="selected_local">Источник: локальная папка</string>
     <string name="selected_yandex">Источник: Яндекс Диск</string>
-    <string name="supported_formats">Поддерживаются JPG, JPEG, PNG, BMP и GIF.</string>
 
     <!-- Браузер папок (локальный) -->
     <string name="browser_title">Выберите папку</string>
     <string name="folder_browser_title">Локальная папка</string>
     <string name="yandex_browse_title">Яндекс Диск</string>
+    <string name="yandex_files">Файлы</string>
+    <string name="yandex_files_subtitle">Папки и фото на Диске</string>
+    <string name="yandex_albums_subtitle">Коллекция альбомов</string>
     <string name="path_placeholder">/storage/emulated/0/Pictures</string>
     <string name="parent_folder">Вверх</string>
     <string name="empty_folder_title">В этой папке пока нет фотографий</string>
@@ -62,8 +65,8 @@
 
     <!-- Возобновление слайдшоу -->
     <string name="resume_title">Слайдшоу</string>
-    <string name="resume_message">Прошлый показ не был завершён. Продолжить с последнего слайда?</string>
-    <string name="resume_continue">Продолжить</string>
+    <string name="resume_message">Прошлый показ не был завершён.</string>
+    <string name="resume_continue">Продолжить с последнего слайда</string>
     <string name="resume_start_over">С начала</string>
 
     <!-- Вход Яндекс.Диск -->

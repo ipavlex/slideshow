@@ -11,7 +11,7 @@
     <TextView android:id="@+id/name" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:layout_marginTop="@dimen/small_spacing"
         android:textColor="@color/text_primary" android:textSize="@dimen/text_body"
-        android:maxLines="1" android:ellipsize="middle"/>
+        android:maxLines="2"/>
     <TextView android:id="@+id/browser_subtitle" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:textColor="@color/text_secondary"
         android:textSize="@dimen/text_caption" android:maxLines="1"/>
