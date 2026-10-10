@@ -5,10 +5,11 @@
 
 ## Текущий спринт — баги и доработки (2026-10-10)
 
-0. **Краш при выборе «Ken Burns» / «Классика»** — падает в `SlideshowActivity`.
-   Вероятная причина: `MediaSession.Builder(...)` (media3-session) без `MediaSessionService`,
-   либо недоступный SAF-пикер на Android TV. Logcat снять нечем (нет adb-устройства).
-   Сделана защитная обёртка MediaSession (try/catch); полная проверка — после получения logcat.
+0. **Краш при выборе «Ken Burns» / «Классика»** — причина подтверждена: на устройстве нет
+   системного SAF-пикера (`ActivityNotFoundException` при `ACTION_OPEN_DOCUMENT_TREE`).
+   Решение: встроенный браузер папок (`FolderBrowserActivity`) + файловый источник
+   (`FolderSource`) вместо SAF; разрешения `READ_EXTERNAL_STORAGE` (API ≤29) /
+   `MANAGE_EXTERNAL_STORAGE` (API 30+). Статус: реализовано.
 
 1. **Вынести выбор режима слайдшоу в настройки** — убрать кнопки режима с главного экрана.
 

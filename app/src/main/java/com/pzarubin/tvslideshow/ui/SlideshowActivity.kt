@@ -21,7 +21,7 @@ import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
-import com.pzarubin.tvslideshow.data.source.LocalFolderSource
+import com.pzarubin.tvslideshow.data.source.FolderSource
 import com.pzarubin.tvslideshow.data.source.MediaItem
 import com.pzarubin.tvslideshow.data.source.MediaSource
 import com.pzarubin.tvslideshow.data.source.YandexClient
@@ -37,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 /**
  * Полноэкранное слайдшоу (фото и видео) с OSD-оверлеем и MediaSession.
@@ -82,10 +83,9 @@ class SlideshowActivity : AppCompatActivity() {
                 intent.getStringExtra(EXTRA_YANDEX_PATH) ?: "disk:/"
             )
         } else {
-            @Suppress("DEPRECATION")
-            val treeUri = intent.getParcelableExtra<Uri>(EXTRA_TREE_URI)
+            val folderPath = intent.getStringExtra(EXTRA_FOLDER_PATH)
                 ?: run { finish(); return }
-            source = LocalFolderSource(this, treeUri, settings.recursive)
+            source = FolderSource(File(folderPath), settings.recursive)
         }
 
         mode = settings.mode
@@ -311,7 +311,7 @@ class SlideshowActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val EXTRA_TREE_URI = "extra_tree_uri"
+        const val EXTRA_FOLDER_PATH = "extra_folder_path"
         const val EXTRA_SOURCE_TYPE = "extra_source_type"
         const val EXTRA_YANDEX_PATH = "extra_yandex_path"
         const val SOURCE_LOCAL = "local"
