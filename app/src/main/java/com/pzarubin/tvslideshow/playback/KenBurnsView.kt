@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.random.Random
 
 /**
@@ -79,7 +80,13 @@ class KenBurnsView @JvmOverloads constructor(
 
         val bw = bmp.width.toFloat()
         val bh = bmp.height.toFloat()
-        val base = max(vw / bw, vh / bh)   // CENTER_CROP
+        // Близкие пропорции — заполняем экран (CENTER_CROP); сильно отличающиеся
+        // (вертикальные/квадратные/панорамы) — показываем целиком (letterbox).
+        val base = if (SlideFit.useLetterbox(bmp.width, bmp.height, width, height)) {
+            min(vw / bw, vh / bh)
+        } else {
+            max(vw / bw, vh / bh)
+        }
         val scale = base * zoom
 
         matrix.reset()
