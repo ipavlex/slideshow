@@ -16,7 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.source.MediaFileTypes
@@ -51,7 +51,7 @@ class FolderBrowserActivity : AppCompatActivity() {
 
         pathView = findViewById(R.id.browser_path)
         grid = findViewById(R.id.browser_list)
-        grid.layoutManager = GridLayoutManager(this, GRID_COLUMNS)
+        grid.layoutManager = LinearLayoutManager(this)
 
         findViewById<Button>(R.id.btn_back).setOnClickListener { navigateBack() }
         findViewById<Button>(R.id.btn_start_slideshow).setOnClickListener { selectCurrent() }
@@ -123,7 +123,7 @@ class FolderBrowserActivity : AppCompatActivity() {
             }
             rows = list
         }
-        grid.adapter = GridCardAdapter(lifecycleScope, rows.map { it.toCard() }) { position ->
+        grid.adapter = BrowserListAdapter(lifecycleScope, rows.map { it.toCard() }) { position ->
             onEntryClick(position)
         }
     }
@@ -205,7 +205,6 @@ class FolderBrowserActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_FOLDER_PATH = "extra_folder_path"
-        private const val GRID_COLUMNS = 5
     }
 }
 

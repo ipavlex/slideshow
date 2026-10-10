@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Строка списка файл-браузера: миниатюра/иконка слева, название целиком
+     (до двух строк, без обрезки) справа. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_margin="@dimen/small_spacing"
+    android:orientation="horizontal" android:gravity="center_vertical"
+    android:background="@drawable/bg_tv_row" android:padding="@dimen/menu_item_padding"
+    android:minHeight="@dimen/list_row_height"
+    android:focusable="true" android:clickable="true" android:stateListAnimator="@null">
+    <ImageView android:id="@+id/browser_thumbnail" android:layout_width="@dimen/icon_size_large"
+        android:layout_height="@dimen/icon_size_large" android:scaleType="fitCenter"
+        android:contentDescription="@string/content_description_photo"/>
+    <LinearLayout android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+        android:layout_weight="1" android:layout_marginStart="@dimen/medium_spacing"
+        android:orientation="vertical" android:gravity="center_vertical">
+        <TextView android:id="@+id/name" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_body" android:maxLines="2"/>
+        <TextView android:id="@+id/browser_subtitle" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_caption" android:maxLines="1"/>
+    </LinearLayout>
+</LinearLayout>
