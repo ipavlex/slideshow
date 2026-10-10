@@ -15,8 +15,8 @@ val yandexClientId = secrets.getProperty("YANDEX_CLIENT_ID", "")
 
 // Имя приложения (slug) и версия — используются в имени APK.
 val appName = "tvslideshow"
-val appVersionName = "0.7.0"
-val appVersionCode = 8
+val appVersionName = "0.7.1"
+val appVersionCode = 9
 
 android {
     namespace = "com.pzarubin.tvslideshow"
