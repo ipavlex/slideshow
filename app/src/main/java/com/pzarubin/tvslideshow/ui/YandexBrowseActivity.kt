@@ -3,12 +3,13 @@ package com.pzarubin.tvslideshow.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
-import android.widget.ArrayAdapter
-import android.widget.ListView
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
@@ -16,34 +17,30 @@ import com.pzarubin.tvslideshow.data.source.YandexClient
 import kotlinx.coroutines.launch
 
 /**
- * Выбор папки на Яндекс.Диске: список вложенных папок, навигация по дереву,
+ * Выбор папки на Яндекс.Диске: сетка вложенных папок, навигация по дереву,
  * запуск слайдшоу для текущей папки.
  */
 class YandexBrowseActivity : AppCompatActivity() {
 
     private var currentPath = ROOT
     private lateinit var client: YandexClient
-    private lateinit var listView: ListView
+    private lateinit var grid: RecyclerView
     private lateinit var pathView: TextView
-    private var folders = listOf<String>()
+    private var dirs = listOf<YandexClient.Entry>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_yandex_browse)
 
-        listView = findViewById(R.id.browse_list)
+        grid = findViewById(R.id.browse_list)
         pathView = findViewById(R.id.browse_path)
 
         client = YandexClient(TokenStore(this), SlideCache(this))
 
-        listView.setOnItemClickListener { _, _, position, _ ->
-            if (position == 0) {
-                startSlideshowHere()
-            } else {
-                currentPath = folders[position - 1]
-                loadFolders()
-            }
-        }
+        findViewById<Button>(R.id.btn_back).setOnClickListener { navigateBack() }
+        findViewById<Button>(R.id.btn_start_slideshow).setOnClickListener { startSlideshowHere() }
+
+        grid.layoutManager = GridLayoutManager(this, GRID_COLUMNS)
 
         loadFolders()
     }
@@ -52,22 +49,29 @@ class YandexBrowseActivity : AppCompatActivity() {
         pathView.text = currentPath
         lifecycleScope.launch {
             try {
-                val entries = client.listEntries(currentPath)
+                dirs = client.listEntries(currentPath)
                     .filter { it.isDir }
                     .sortedBy { it.name.lowercase() }
-                folders = entries.map { it.path }
 
-                val labels = mutableListOf(getString(R.string.yandex_start_here))
-                labels.addAll(entries.map { it.name })
-
-                listView.adapter = ArrayAdapter(
-                    this@YandexBrowseActivity,
-                    R.layout.list_item_yandex,
-                    labels
-                )
+                grid.adapter = GridCardAdapter(
+                    lifecycleScope,
+                    dirs.map { GridCard(it.name, R.drawable.ic_folder) }
+                ) { position ->
+                    currentPath = dirs[position].path
+                    loadFolders()
+                }
             } catch (e: Exception) {
                 Toast.makeText(this@YandexBrowseActivity, e.message, Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    private fun navigateBack() {
+        if (currentPath != ROOT) {
+            currentPath = parentOf(currentPath)
+            loadFolders()
+        } else {
+            finish()
         }
     }
 
@@ -99,5 +103,6 @@ class YandexBrowseActivity : AppCompatActivity() {
 
     companion object {
         const val ROOT = "disk:/"
+        private const val GRID_COLUMNS = 5
     }
 }

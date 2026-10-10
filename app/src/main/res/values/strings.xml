@@ -1,26 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TV Слайдшоу</string>
+    <!-- Общие -->
+    <string name="app_name">Слайдшоу</string>
+    <string name="home_subtitle">Ваши фото на большом экране</string>
+
+    <!-- Главный экран -->
+    <string name="local_folder">Локальная папка</string>
+    <string name="local_folder_subtitle">Фотографии на устройстве</string>
+    <string name="yandex_disk">Яндекс Диск</string>
+    <string name="yandex_subtitle">Войти в аккаунт</string>
+    <string name="settings">Настройки</string>
+    <string name="settings_subtitle">Параметры приложения</string>
+    <string name="selected_local">Источник: локальная папка</string>
+    <string name="selected_yandex">Источник: Яндекс Диск</string>
+    <string name="supported_formats">Поддерживаются JPG, JPEG, PNG, BMP и GIF.</string>
+
+    <!-- Браузер папок (локальный) -->
+    <string name="browser_title">Выберите папку</string>
+    <string name="folder_browser_title">Локальная папка</string>
+    <string name="yandex_browse_title">Яндекс Диск</string>
+    <string name="path_placeholder">/storage/emulated/0/Pictures</string>
+    <string name="parent_folder">Вверх</string>
+    <string name="empty_folder_title">В этой папке пока нет фотографий</string>
+    <string name="empty_folder_message">Выберите другую папку или проверьте её содержимое.</string>
+    <string name="start_slideshow">Запустить слайдшоу</string>
+    <string name="preview">Предпросмотр</string>
+    <string name="loading">Загрузка…</string>
+    <string name="error_generic">Не удалось загрузить данные</string>
+    <string name="retry">Повторить</string>
+    <string name="cancel">Отмена</string>
+    <string name="back">Назад</string>
+    <string name="done">Готово</string>
+
+    <!-- Браузер папок (устаревшие строки, сохраняются для совместимости) -->
     <string name="choose_folder_hint">Выберите папку с фотографиями и видео</string>
     <string name="choose_local_folder">Выбрать локальную папку</string>
     <string name="storage_internal">Внутренняя память</string>
     <string name="storage_usb">USB: %1$s</string>
     <string name="browser_root_title">Выберите диск</string>
-    <string name="browser_title">Выбор папки</string>
     <string name="browser_up">← Назад</string>
     <string name="browser_select">Выбрать эту папку</string>
     <string name="storage_access_needed">Нужен доступ к файлам, чтобы выбрать папку</string>
     <string name="browser_select_root_hint">Сначала откройте диск и выберите папку</string>
     <string name="badge_photo">ФОТО</string>
     <string name="badge_video">ВИДЕО</string>
-    <string name="choose_ken_burns">Ken Burns</string>
-    <string name="choose_classic">Классика</string>
-    <string name="setting_mode">Режим: %1$s</string>
-    <string name="choose_yandex">Яндекс.Диск</string>
     <string name="no_media_found">В выбранной папке нет фотографий или видео</string>
-    <string name="speed_value">Скорость: %1$s×</string>
-    <string name="osd_counter">%1$d / %2$d</string>
-    <string name="osd_paused">Пауза</string>
+
+    <!-- Вход Яндекс.Диск -->
+    <string name="login_title">Подключение Яндекс Диска</string>
+    <string name="login_description">Войдите в аккаунт Яндекса, чтобы открыть фотографии на Диске.</string>
+    <string name="login_step">Откройте страницу авторизации и введите код:</string>
+    <string name="login_open_url">Адрес для входа</string>
+    <string name="login_code_label">Код подтверждения</string>
+    <string name="login_waiting">Ожидаем подтверждения авторизации…</string>
+    <string name="login_success">Аккаунт подключён</string>
+    <string name="login_error">Не удалось подключиться. Проверьте соединение и повторите попытку.</string>
+    <string name="login_button">Проверить подключение</string>
+    <string name="login_qr_description">Отсканируйте QR-код телефоном или откройте адрес на другом устройстве.</string>
+
+    <!-- Вход Яндекс.Диск (статусы опроса, используются в коде) -->
     <string name="yandex_title">Яндекс.Диск</string>
     <string name="yandex_instruction">На телефоне или компьютере откройте:</string>
     <string name="yandex_code_label">И введите код:</string>
@@ -32,8 +70,31 @@
     <string name="yandex_expired">Код истёк, попробуйте ещё раз</string>
     <string name="yandex_error">Ошибка</string>
     <string name="yandex_start_here">Начать слайдшоу здесь</string>
-    <string name="choose_settings">Настройки</string>
+
+    <!-- Настройки -->
     <string name="settings_title">Настройки</string>
+    <string name="setting_duration_label">Интервал смены слайдов</string>
+    <string name="setting_duration_value">5 секунд</string>
+    <string name="setting_mode_label">Режим отображения</string>
+    <string name="setting_mode_value">Вписать целиком</string>
+    <string name="setting_order_label">Порядок показа</string>
+    <string name="setting_order_value">По имени</string>
+    <string name="setting_recursive_label">Включать вложенные папки</string>
+    <string name="setting_shuffle_label">Случайный порядок</string>
+    <string name="setting_recursive_summary">Добавлять фотографии из вложенных каталогов</string>
+    <string name="setting_shuffle_summary">Перемешивать фотографии перед показом</string>
+    <string name="setting_mode_fit">Вписать целиком</string>
+    <string name="setting_mode_fill">Заполнить экран</string>
+    <string name="setting_order_name">По имени</string>
+    <string name="setting_order_random">Случайно</string>
+    <string name="settings_saved">Настройки сохранены</string>
+    <!-- Формат строки настройки: «Метка: значение». -->
+    <string name="setting_row_format">%1$s: %2$s</string>
+
+    <!-- Настройки (значения и форматные строки, используются в коде) -->
+    <string name="choose_ken_burns">Ken Burns</string>
+    <string name="choose_classic">Классика</string>
+    <string name="setting_mode">Режим: %1$s</string>
     <string name="setting_order">Порядок: %1$s</string>
     <string name="setting_shuffle">Перемешивание: %1$s</string>
     <string name="setting_duration">Длительность фото: %1$s</string>
@@ -45,4 +106,36 @@
     <string name="setting_off">выкл</string>
     <string name="duration_auto">Авто</string>
     <string name="duration_seconds">%1$d с</string>
+
+    <!-- Слайдшоу (OSD) -->
+    <string name="slideshow_title">Слайдшоу</string>
+    <string name="slideshow_counter_format">%1$d / %2$d</string>
+    <string name="slideshow_paused">Пауза</string>
+    <string name="slideshow_playing">Воспроизведение</string>
+    <string name="slideshow_previous">Предыдущая фотография</string>
+    <string name="slideshow_next">Следующая фотография</string>
+    <string name="slideshow_pause">Приостановить</string>
+    <string name="slideshow_resume">Продолжить</string>
+    <string name="slideshow_exit">Завершить слайдшоу</string>
+    <string name="slideshow_settings">Настройки слайдшоу</string>
+    <string name="slideshow_time">Осталось</string>
+    <string name="slideshow_speed">Интервал</string>
+    <string name="osd_counter">%1$d / %2$d</string>
+    <string name="osd_paused">Пауза</string>
+    <string name="speed_value">Скорость: %1$s×</string>
+    <string name="no_photos">В выбранной папке нет поддерживаемых изображений.</string>
+
+    <!-- Меню (описания для доступности) -->
+    <string name="menu_local">Открыть локальную папку</string>
+    <string name="menu_yandex">Открыть Яндекс Диск</string>
+    <string name="menu_settings">Открыть настройки</string>
+    <string name="content_description_logo">Логотип приложения</string>
+    <string name="content_description_qr">QR-код для авторизации</string>
+    <string name="content_description_folder">Папка</string>
+    <string name="content_description_photo">Миниатюра фотографии</string>
+    <string name="focus_hint">Выбрано</string>
+
+    <!-- Устаревшие строки (сохраняются для совместимости) -->
+    <string name="choose_settings">Настройки</string>
+    <string name="choose_yandex">Яндекс.Диск</string>
 </resources>

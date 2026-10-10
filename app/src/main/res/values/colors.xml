@@ -1,22 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Фоны -->
     <color name="background">#FF0B0E14</color>
-    <color name="surface">#FF171B24</color>
-    <color name="surface_focused">#FF25304A</color>
-    <color name="surface_pressed">#FF1F2739</color>
-
-    <!-- Акцент -->
-    <color name="primary">#FF3D5AFE</color>
-    <color name="primary_soft">#FF8EA2FF</color>
-    <color name="focus_stroke">#FF9AB0FF</color>
-
-    <!-- Текст -->
-    <color name="text_primary">#FFF2F4F8</color>
-    <color name="text_secondary">#B3AEB6C4</color>
-    <color name="text_disabled">#66FFFFFF</color>
-
-    <!-- Нейтральный (для QR-карточки и прочего) -->
-    <color name="white">#FFFFFFFF</color>
-    <color name="black">#FF000000</color>
+    <color name="surface">#FF172232</color>
+    <color name="surface_focused">#FF203F67</color>
+    <color name="surface_pressed">#FF142B46</color>
+    <color name="primary">#FF3D9BFF</color>
+    <color name="primary_soft">#FF254D7A</color>
+    <color name="focus_stroke">#FF4AA3FF</color>
+    <color name="text_primary">#FFF4F7FC</color>
+    <color name="text_secondary">#FFB0BED2</color>
+    <color name="text_disabled">#FF68778D</color>
+    <color name="divider">#FF2B394B</color>
+    <color name="scrim">#B8000000</color>
+    <color name="success">#FF75D6A2</color>
+    <color name="warning">#FFFFC266</color>
 </resources>

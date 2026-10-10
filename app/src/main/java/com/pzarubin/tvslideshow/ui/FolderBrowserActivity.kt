@@ -1,7 +1,6 @@
 package com.pzarubin.tvslideshow.ui
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -9,32 +8,30 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.ListView
+import android.view.KeyEvent
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.source.MediaFileTypes
 import java.io.File
 
 /**
- * Встроенный браузер папок (внутренняя память + USB). Используется вместо
- * системного SAF-пикера, которого нет на части Android TV. Показывает вложенные
- * папки, а также медиафайлы текущей папки (фото/видео) — чтобы было видно,
- * что в папке есть контент. «Выбрать эту папку» вынесено первым пунктом списка.
- * Возвращает путь выбранной папки через [EXTRA_FOLDER_PATH].
+ * Встроенный браузер папок (внутренняя память + USB). Показывает вложенные папки,
+ * а также медиафайлы текущей папки (фото/видео) — сеткой карточек. Кнопка
+ * «Назад» поднимается на уровень выше, «Запустить слайдшоу» выбирает текущую
+ * папку. Возвращает путь выбранной папки через [EXTRA_FOLDER_PATH].
  */
 class FolderBrowserActivity : AppCompatActivity() {
 
     private lateinit var pathView: TextView
-    private lateinit var listView: ListView
-    private lateinit var adapter: BrowserAdapter
+    private lateinit var grid: RecyclerView
 
     private var currentDir: File? = null
     private var roots: List<Pair<File, String>> = emptyList()
@@ -50,11 +47,11 @@ class FolderBrowserActivity : AppCompatActivity() {
         setContentView(R.layout.activity_folder_browser)
 
         pathView = findViewById(R.id.browser_path)
-        listView = findViewById(R.id.browser_list)
+        grid = findViewById(R.id.browser_list)
+        grid.layoutManager = GridLayoutManager(this, GRID_COLUMNS)
 
-        adapter = BrowserAdapter(this)
-        listView.adapter = adapter
-        listView.setOnItemClickListener { _, _, position, _ -> onEntryClick(position) }
+        findViewById<Button>(R.id.btn_back).setOnClickListener { navigateBack() }
+        findViewById<Button>(R.id.btn_start_slideshow).setOnClickListener { selectCurrent() }
     }
 
     override fun onResume() {
@@ -110,32 +107,41 @@ class FolderBrowserActivity : AppCompatActivity() {
                 .sortedBy { it.name.lowercase() }
 
             val list = mutableListOf<BrowserRow>()
-            list.add(BrowserRow(getString(R.string.browser_select), RowKind.SELECT))
-            list.add(BrowserRow(getString(R.string.browser_up), RowKind.UP))
             folders.forEach { list.add(BrowserRow(it.name, RowKind.FOLDER, it)) }
             media.forEach {
                 list.add(
-                    BrowserRow(it.name, RowKind.MEDIA, isVideo = MediaFileTypes.isVideo(it.name))
+                    BrowserRow(
+                        it.name,
+                        RowKind.MEDIA,
+                        isVideo = MediaFileTypes.isVideo(it.name),
+                        file = it
+                    )
                 )
             }
             rows = list
         }
-        adapter.submit(rows)
+        grid.adapter = GridCardAdapter(lifecycleScope, rows.map { it.toCard() }) { position ->
+            onEntryClick(position)
+        }
     }
 
     private fun onEntryClick(position: Int) {
         val row = rows.getOrNull(position) ?: return
         when (row.kind) {
-            RowKind.SELECT -> selectCurrent()
-            RowKind.UP -> {
-                currentDir = parentOf(currentDir)
-                load()
-            }
             RowKind.FOLDER -> {
                 currentDir = row.target
                 load()
             }
             RowKind.MEDIA -> Unit // не кликабельно
+        }
+    }
+
+    private fun navigateBack() {
+        if (currentDir == null) {
+            finish()
+        } else {
+            currentDir = parentOf(currentDir)
+            load()
         }
     }
 
@@ -174,71 +180,39 @@ class FolderBrowserActivity : AppCompatActivity() {
         return list
     }
 
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (keyCode == KeyEvent.KEYCODE_BACK && currentDir != null) {
+            navigateBack()
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
+
+    private fun BrowserRow.toCard(): GridCard = when (kind) {
+        RowKind.FOLDER -> GridCard(label, R.drawable.ic_folder)
+        RowKind.MEDIA -> GridCard(
+            label,
+            R.drawable.ic_photo,
+            R.color.text_secondary,
+            getString(if (isVideo) R.string.badge_video else R.string.badge_photo),
+            thumbFile = file,
+            thumbIsVideo = isVideo
+        )
+    }
+
     companion object {
         const val EXTRA_FOLDER_PATH = "extra_folder_path"
+        private const val GRID_COLUMNS = 5
     }
 }
 
-/** Тип строки списка браузера. */
-private enum class RowKind { SELECT, UP, FOLDER, MEDIA }
+/** Тип строки сетки браузера. */
+private enum class RowKind { FOLDER, MEDIA }
 
 private data class BrowserRow(
     val label: String,
     val kind: RowKind,
     val target: File? = null,
-    val isVideo: Boolean = false
+    val isVideo: Boolean = false,
+    val file: File? = null
 )
-
-private class BrowserAdapter(private val context: Context) : BaseAdapter() {
-
-    private val rows = mutableListOf<BrowserRow>()
-
-    fun submit(newRows: List<BrowserRow>) {
-        rows.clear()
-        rows.addAll(newRows)
-        notifyDataSetChanged()
-    }
-
-    override fun getCount() = rows.size
-
-    override fun getItem(position: Int) = rows[position]
-
-    override fun getItemId(position: Int) = position.toLong()
-
-    // Есть неактивные строки (медиафайлы), поэтому сообщаем, что не все enabled —
-    // иначе ListView не пропустит их при навигации фокусом.
-    override fun areAllItemsEnabled() = false
-
-    override fun isEnabled(position: Int) = rows[position].kind != RowKind.MEDIA
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val view = convertView ?: LayoutInflater.from(context)
-            .inflate(R.layout.item_browser, parent, false)
-        val badge = view.findViewById<TextView>(R.id.badge)
-        val name = view.findViewById<TextView>(R.id.name)
-        val row = rows[position]
-
-        name.text = row.label
-        when (row.kind) {
-            RowKind.MEDIA -> {
-                view.background = null
-                name.setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
-                badge.visibility = View.VISIBLE
-                badge.text = context.getString(
-                    if (row.isVideo) R.string.badge_video else R.string.badge_photo
-                )
-            }
-            RowKind.SELECT -> {
-                view.setBackgroundResource(R.drawable.bg_tv_row)
-                name.setTextColor(ContextCompat.getColor(context, R.color.primary))
-                badge.visibility = View.GONE
-            }
-            RowKind.UP, RowKind.FOLDER -> {
-                view.setBackgroundResource(R.drawable.bg_tv_row)
-                name.setTextColor(ContextCompat.getColor(context, R.color.text_primary))
-                badge.visibility = View.GONE
-            }
-        }
-        return view
-    }
-}

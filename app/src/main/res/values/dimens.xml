@@ -1,30 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Отступы экрана (TV-safe, с запасом от краёв overscan) -->
-    <dimen name="screen_padding_horizontal">96dp</dimen>
-    <dimen name="screen_padding_vertical">48dp</dimen>
-
-    <!-- Пункты меню -->
-    <dimen name="menu_item_min_width">480dp</dimen>
-    <dimen name="menu_item_height">64dp</dimen>
+    <dimen name="screen_padding_horizontal">48dp</dimen>
+    <dimen name="screen_padding_vertical">24dp</dimen>
+    <dimen name="menu_item_min_width">220dp</dimen>
+    <dimen name="menu_item_height">76dp</dimen>
     <dimen name="menu_item_spacing">16dp</dimen>
-    <dimen name="menu_item_padding">28dp</dimen>
-
-    <!-- Скругления и фокус -->
+    <dimen name="menu_item_padding">18dp</dimen>
     <dimen name="corner_medium">12dp</dimen>
     <dimen name="corner_large">20dp</dimen>
-    <dimen name="focus_stroke_width">2dp</dimen>
-
-    <!-- Типографика (TV) -->
-    <dimen name="text_title">40sp</dimen>
-    <dimen name="text_screen_title">30sp</dimen>
+    <dimen name="focus_stroke_width">3dp</dimen>
+    <dimen name="text_title">28sp</dimen>
+    <dimen name="text_screen_title">32sp</dimen>
     <dimen name="text_menu">22sp</dimen>
     <dimen name="text_body">18sp</dimen>
-    <dimen name="text_caption">16sp</dimen>
-    <dimen name="text_display">40sp</dimen>
-    <dimen name="text_qr_code">40sp</dimen>
-
-    <!-- QR -->
+    <dimen name="text_caption">14sp</dimen>
+    <dimen name="text_display">26sp</dimen>
+    <dimen name="text_qr_code">16sp</dimen>
     <dimen name="qr_size">220dp</dimen>
-    <dimen name="qr_card_padding">16dp</dimen>
+    <dimen name="qr_card_padding">24dp</dimen>
+    <dimen name="icon_size">32dp</dimen>
+    <dimen name="icon_size_small">24dp</dimen>
+    <dimen name="header_height">72dp</dimen>
+    <dimen name="browser_item_width">190dp</dimen>
+    <dimen name="browser_item_height">166dp</dimen>
+    <dimen name="thumbnail_height">80dp</dimen>
+    <dimen name="list_row_height">72dp</dimen>
+    <dimen name="section_spacing">24dp</dimen>
+    <dimen name="button_min_width">240dp</dimen>
+    <dimen name="button_height">64dp</dimen>
+    <dimen name="osd_height">88dp</dimen>
+    <dimen name="progress_height">6dp</dimen>
+    <dimen name="login_content_width">680dp</dimen>
+    <dimen name="card_elevation">0dp</dimen>
+    <dimen name="small_spacing">8dp</dimen>
+    <dimen name="medium_spacing">12dp</dimen>
+    <dimen name="large_spacing">28dp</dimen>
+    <dimen name="settings_label_width">420dp</dimen>
+    <dimen name="settings_value_width">260dp</dimen>
+    <dimen name="osd_side_padding">32dp</dimen>
+    <dimen name="zero_size">0dp</dimen>
 </resources>

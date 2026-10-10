@@ -1,93 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/background"
     android:paddingStart="@dimen/screen_padding_horizontal"
     android:paddingTop="@dimen/screen_padding_vertical"
     android:paddingEnd="@dimen/screen_padding_horizontal"
     android:paddingBottom="@dimen/screen_padding_vertical">
 
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="center_vertical"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:text="@string/yandex_title"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_screen_title" />
-
-        <View
-            android:layout_width="64dp"
-            android:layout_height="4dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="24dp"
-            android:background="@color/primary" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/yandex_instruction"
-            android:textColor="@color/text_secondary"
-            android:textSize="@dimen/text_body" />
-
-        <TextView
-            android:id="@+id/login_url"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:fontFamily="sans-serif-medium"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_menu" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/yandex_code_label"
-            android:textColor="@color/text_secondary"
-            android:textSize="@dimen/text_body" />
-
-        <TextView
-            android:id="@+id/login_code"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.12"
-            android:textColor="@color/primary_soft"
-            android:textSize="@dimen/text_qr_code" />
-
-        <TextView
-            android:id="@+id/login_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:textColor="@color/text_secondary"
-            android:textSize="@dimen/text_body" />
+    <!-- Заголовок -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <ImageView android:layout_width="@dimen/icon_size" android:layout_height="@dimen/icon_size"
+            android:src="@drawable/ic_cloud" android:contentDescription="@string/yandex_disk"/>
+        <TextView android:id="@+id/login_title" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_marginStart="@dimen/medium_spacing"
+            android:text="@string/login_title" style="@style/TextAppearance.TvSlideshow.Title"/>
     </LinearLayout>
 
-    <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="48dp"
-        android:background="@drawable/bg_tv_qr_card"
-        android:padding="@dimen/qr_card_padding">
+    <!-- Тело: инструкция слева, QR справа -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/zero_size"
+        android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
 
-        <ImageView
-            android:id="@+id/login_qr"
-            android:layout_width="@dimen/qr_size"
-            android:layout_height="@dimen/qr_size"
-            android:contentDescription="@string/yandex_qr_hint"
-            android:scaleType="fitCenter" />
-    </FrameLayout>
+        <LinearLayout android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical"
+            android:gravity="center_vertical" android:paddingEnd="@dimen/large_spacing">
 
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="@string/login_description" style="@style/TextAppearance.TvSlideshow.Body"/>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/large_spacing" android:text="@string/login_open_url"
+                style="@style/TextAppearance.TvSlideshow.Caption"/>
+            <TextView android:id="@+id/login_url" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="@dimen/small_spacing"
+                android:textColor="@color/text_primary" android:textSize="@dimen/text_body"
+                android:maxLines="2"/>
+
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/large_spacing" android:text="@string/login_code_label"
+                style="@style/TextAppearance.TvSlideshow.Caption"/>
+            <TextView android:id="@+id/login_code" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginTop="@dimen/small_spacing"
+                android:textColor="@color/primary" android:textSize="@dimen/text_display"
+                android:fontFamily="sans-serif-medium" android:letterSpacing="0.12"/>
+
+            <TextView android:id="@+id/login_status" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="@dimen/large_spacing"
+                android:textColor="@color/text_secondary" android:textSize="@dimen/text_body"/>
+
+            <Button android:id="@+id/btn_login_retry" android:layout_width="@dimen/button_min_width"
+                android:layout_height="@dimen/menu_item_height" android:layout_marginTop="@dimen/large_spacing"
+                android:background="@drawable/bg_tv_button" android:text="@string/login_button"
+                android:textColor="@color/text_primary" android:textSize="@dimen/text_menu"
+                android:padding="@dimen/menu_item_padding" android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@null"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:orientation="vertical" android:gravity="center_horizontal">
+            <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:background="@drawable/bg_tv_qr_card" android:padding="@dimen/qr_card_padding">
+                <ImageView android:id="@+id/login_qr" android:layout_width="@dimen/qr_size"
+                    android:layout_height="@dimen/qr_size"
+                    android:contentDescription="@string/content_description_qr" android:scaleType="fitCenter"/>
+            </FrameLayout>
+            <TextView android:id="@+id/login_help" android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:layout_marginTop="@dimen/medium_spacing"
+                android:text="@string/login_qr_description" android:gravity="center"
+                style="@style/TextAppearance.TvSlideshow.Caption"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Назад -->
+    <Button android:id="@+id/btn_login_back" android:layout_width="@dimen/button_min_width"
+        android:layout_height="@dimen/menu_item_height"
+        android:background="@drawable/bg_tv_row" android:text="@string/back"
+        android:textColor="@color/text_primary" android:textSize="@dimen/text_menu"
+        android:padding="@dimen/menu_item_padding" android:focusable="true" android:clickable="true"
+        android:stateListAnimator="@null"/>
 </LinearLayout>

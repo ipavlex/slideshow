@@ -1,65 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/background"
-    android:fillViewport="true"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/background"
     android:paddingStart="@dimen/screen_padding_horizontal"
+    android:paddingTop="@dimen/screen_padding_vertical"
     android:paddingEnd="@dimen/screen_padding_horizontal"
-    android:scrollbars="none">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:paddingTop="@dimen/screen_padding_vertical"
-        android:paddingBottom="@dimen/screen_padding_vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:text="@string/settings_title"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_screen_title" />
-
-        <View
-            android:layout_width="64dp"
-            android:layout_height="4dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="32dp"
-            android:background="@color/primary" />
-
-        <Button
-            android:id="@+id/setting_mode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/menu_item_spacing"
-            android:focusedByDefault="true" />
-
-        <Button
-            android:id="@+id/setting_order"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/menu_item_spacing" />
-
-        <Button
-            android:id="@+id/setting_shuffle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/menu_item_spacing" />
-
-        <Button
-            android:id="@+id/setting_duration"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/menu_item_spacing" />
-
-        <Button
-            android:id="@+id/setting_recursive"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </LinearLayout>
-</ScrollView>
+    android:paddingBottom="@dimen/screen_padding_vertical">
+    <TextView android:id="@+id/settings_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings" style="@style/TextAppearance.TvSlideshow.Title" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="@dimen/zero_size" android:layout_weight="1" android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/section_spacing">
+            <Button android:id="@+id/setting_duration" style="@style/Widget.TvSlideshow.Row" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_duration_label" android:gravity="center_vertical" android:drawableEnd="@drawable/ic_next"/>
+            <Button android:id="@+id/setting_mode" style="@style/Widget.TvSlideshow.Row" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_mode_label" android:gravity="center_vertical" android:drawableEnd="@drawable/ic_next"/>
+            <Button android:id="@+id/setting_order" style="@style/Widget.TvSlideshow.Row" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_order_label" android:gravity="center_vertical" android:drawableEnd="@drawable/ic_next"/>
+            <Switch android:id="@+id/setting_recursive" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_recursive_label" android:textColor="@color/text_primary" android:textSize="@dimen/text_body" android:padding="@dimen/menu_item_padding" android:focusable="true" android:thumbTint="@color/primary" android:trackTint="@color/primary_soft"/>
+            <Switch android:id="@+id/setting_shuffle" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_shuffle_label" android:textColor="@color/text_primary" android:textSize="@dimen/text_body" android:padding="@dimen/menu_item_padding" android:focusable="true" android:thumbTint="@color/primary" android:trackTint="@color/primary_soft"/>
+        </LinearLayout>
+    </ScrollView>
+    <Button android:id="@+id/btn_settings_back" android:layout_width="match_parent" android:layout_height="@dimen/menu_item_height" android:background="@drawable/bg_tv_row" android:text="@string/back" android:textColor="@color/text_primary" android:textSize="@dimen/text_menu" android:padding="@dimen/menu_item_padding" android:focusable="true" android:clickable="true" android:stateListAnimator="@null" />
+</LinearLayout>

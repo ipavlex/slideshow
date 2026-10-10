@@ -1,89 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:clickable="false"
-    android:focusable="false">
-
-    <LinearLayout
-        android:id="@+id/osd_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:orientation="vertical"
-        android:background="@drawable/osd_background"
-        android:paddingStart="32dp"
-        android:paddingTop="16dp"
-        android:paddingEnd="32dp"
-        android:paddingBottom="20dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/osd_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:singleLine="true"
-                android:textColor="@color/text_primary"
-                android:textSize="22sp" />
-
-            <TextView
-                android:id="@+id/osd_counter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:textColor="@color/text_secondary"
-                android:textSize="18sp" />
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:focusable="false" android:clickable="false">
+    <LinearLayout android:id="@+id/osd_panel" android:layout_width="match_parent"
+        android:layout_height="@dimen/osd_height" android:layout_gravity="bottom"
+        android:layout_marginStart="@dimen/osd_side_padding" android:layout_marginEnd="@dimen/osd_side_padding"
+        android:layout_marginBottom="@dimen/screen_padding_vertical" android:orientation="vertical"
+        android:background="@drawable/osd_background" android:padding="@dimen/menu_item_padding">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/zero_size"
+            android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:id="@+id/osd_title" android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                android:layout_weight="1" android:textColor="@color/text_primary" android:textSize="@dimen/text_body"
+                android:maxLines="1" android:ellipsize="middle"/>
+            <TextView android:id="@+id/osd_counter" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
+            <TextView android:id="@+id/osd_time" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/medium_spacing" android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
         </LinearLayout>
-
-        <ProgressBar
-            android:id="@+id/osd_progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="4dp"
-            android:layout_marginTop="10dp"
-            android:max="1000"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/osd_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary"
-                android:textSize="16sp" />
-
-            <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_weight="1" />
-
-            <TextView
-                android:id="@+id/osd_speed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary"
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/osd_state"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:textColor="@color/text_secondary"
-                android:textSize="16sp" />
+        <ProgressBar android:id="@+id/osd_progress" style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent" android:layout_height="@dimen/progress_height"
+            android:progressTint="@color/primary" android:progressBackgroundTint="@color/surface"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/small_spacing">
+            <TextView android:id="@+id/osd_state" android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                android:layout_weight="1" android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
+            <TextView android:id="@+id/osd_speed" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

@@ -30,6 +30,7 @@ import com.pzarubin.tvslideshow.domain.PlaylistBuilder
 import com.pzarubin.tvslideshow.domain.SlideMode
 import com.pzarubin.tvslideshow.domain.SlideshowEngine
 import com.pzarubin.tvslideshow.playback.BitmapLoader
+import com.pzarubin.tvslideshow.playback.KenBurnsView
 import com.pzarubin.tvslideshow.playback.SlideshowView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -166,8 +167,11 @@ class SlideshowActivity : AppCompatActivity() {
         when (item.kind) {
             MediaItem.Kind.PHOTO -> {
                 val gen = ++generation
-                val targetW = resources.displayMetrics.widthPixels
-                val targetH = resources.displayMetrics.heightPixels
+                // Декодируем «cover» с запасом под зум Кен Бёрнса (до 1.12x),
+                // чтобы при отрисовке не было апскейла (иначе пикселизация).
+                val zoom = KenBurnsView.KEN_BURNS_SCALE
+                val targetW = (resources.displayMetrics.widthPixels * zoom).toInt()
+                val targetH = (resources.displayMetrics.heightPixels * zoom).toInt()
                 val duration = photoDuration
                 lifecycleScope.launch(Dispatchers.IO) {
                     val uri = source.open(item)

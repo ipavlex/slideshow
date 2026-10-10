@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -15,30 +16,47 @@ import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.auth.YandexAuth
 import com.pzarubin.tvslideshow.data.auth.YandexConfig
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
  * Вход в Яндекс.Диск через device-code: показывает URL и код, опрашивает
- * статус авторизации, при успехе переходит к выбору папки.
+ * статус авторизации, при успехе переходит к выбору папки. Кнопка «Проверить
+ * подключение» перезапускает опрос.
  */
 class YandexLoginActivity : AppCompatActivity() {
 
     private lateinit var statusView: TextView
+    private lateinit var urlView: TextView
+    private lateinit var codeView: TextView
+    private lateinit var qrView: ImageView
+    private lateinit var tokenStore: TokenStore
+    private var pollJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_yandex_login)
 
-        val urlView = findViewById<TextView>(R.id.login_url)
-        val codeView = findViewById<TextView>(R.id.login_code)
-        val qrView = findViewById<ImageView>(R.id.login_qr)
+        urlView = findViewById(R.id.login_url)
+        codeView = findViewById(R.id.login_code)
+        qrView = findViewById(R.id.login_qr)
         statusView = findViewById(R.id.login_status)
+        tokenStore = TokenStore(this)
 
-        val tokenStore = TokenStore(this)
+        findViewById<Button>(R.id.btn_login_back).setOnClickListener { finish() }
+        findViewById<Button>(R.id.btn_login_retry).setOnClickListener { startAuth() }
 
-        lifecycleScope.launch {
+        startAuth()
+    }
+
+    private fun startAuth() {
+        pollJob?.cancel()
+        pollJob = lifecycleScope.launch {
             statusView.text = getString(R.string.yandex_requesting)
+            urlView.text = ""
+            codeView.text = ""
+            qrView.setImageBitmap(null)
             try {
                 val code = YandexAuth.requestDeviceCode(YandexConfig.CLIENT_ID, tokenStore.deviceId)
                 urlView.text = code.verificationUrl
@@ -80,6 +98,11 @@ class YandexLoginActivity : AppCompatActivity() {
                 statusView.text = e.message ?: getString(R.string.yandex_error)
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        pollJob?.cancel()
     }
 
     private fun generateQrCode(text: String, size: Int): Bitmap {

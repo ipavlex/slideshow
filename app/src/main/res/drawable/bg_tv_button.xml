@@ -1,25 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Фокус с пульта: подсветка + контрастная рамка. -->
-    <item android:state_focused="true">
+    <item android:state_enabled="false">
         <shape android:shape="rectangle">
-            <solid android:color="@color/surface_focused" />
-            <stroke
-                android:width="@dimen/focus_stroke_width"
-                android:color="@color/focus_stroke" />
-            <corners android:radius="@dimen/corner_medium" />
+            <solid android:color="@color/surface" />
+            <corners android:radius="@dimen/corner_large" />
         </shape>
     </item>
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/surface_pressed" />
-            <corners android:radius="@dimen/corner_medium" />
+            <stroke android:width="@dimen/focus_stroke_width" android:color="@color/primary" />
+            <corners android:radius="@dimen/corner_large" />
+        </shape>
+    </item>
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/surface_focused" />
+            <stroke android:width="@dimen/focus_stroke_width" android:color="@color/focus_stroke" />
+            <corners android:radius="@dimen/corner_large" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <solid android:color="@color/surface" />
-            <corners android:radius="@dimen/corner_medium" />
+            <corners android:radius="@dimen/corner_large" />
         </shape>
     </item>
 </selector>

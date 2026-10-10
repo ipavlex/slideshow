@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@android:id/text1"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/bg_tv_row"
-    android:ellipsize="end"
-    android:gravity="center_vertical"
-    android:minHeight="@dimen/menu_item_height"
-    android:paddingStart="@dimen/menu_item_padding"
-    android:paddingEnd="@dimen/menu_item_padding"
-    android:singleLine="true"
-    android:textColor="@color/text_primary"
-    android:textSize="@dimen/text_menu" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="@dimen/list_row_height"
+    android:orientation="horizontal" android:gravity="center_vertical"
+    android:background="@drawable/bg_tv_row" android:padding="@dimen/menu_item_padding"
+    android:focusable="true" android:clickable="true">
+    <ImageView android:id="@+id/yandex_item_icon" android:layout_width="@dimen/icon_size"
+        android:layout_height="@dimen/icon_size" android:src="@drawable/ic_folder"
+        android:contentDescription="@string/content_description_folder"/>
+    <TextView android:id="@+id/name" android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+        android:layout_weight="1" android:layout_marginStart="@dimen/medium_spacing"
+        android:textColor="@color/text_primary" android:textSize="@dimen/text_body"
+        android:maxLines="1" android:ellipsize="end"/>
+    <TextView android:id="@+id/badge" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
+</LinearLayout>
