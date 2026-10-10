@@ -148,8 +148,10 @@ class SlideshowEngine(
     private fun stepSpeed(delta: Int) {
         val current = SPEEDS.indexOfFirst { it == speedMultiplier }
             .let { if (it < 0) SPEEDS.indexOf(1f) else it }
-        val next = SPEEDS[(current + delta + SPEEDS.size) % SPEEDS.size]
-        setSpeed(next)
+        // Без закольцовки: на краях диапазона дальнейшие нажатия ничего не меняют.
+        val next = (current + delta).coerceIn(SPEEDS.indices)
+        if (next == current) return
+        setSpeed(SPEEDS[next])
     }
 
     private fun setSpeed(value: Float) {
