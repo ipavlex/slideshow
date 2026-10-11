@@ -70,10 +70,31 @@ confidential (например, тип «Для доступа к API или о�
 ./gradlew assembleRelease    # release-APK (подписан debug-ключом для sideload)
 ```
 
+Если системной Java нет (macOS + Homebrew), путь к JDK задаётся переменной:
+
+```bash
+JAVA_HOME=/opt/homebrew/opt/openjdk@17 ./gradlew assembleRelease
+```
+
+Путь к Android SDK берётся из `local.properties` (`sdk.dir`, например
+`/opt/homebrew/share/android-commandlinetools` — устанавливается через
+Homebrew: `sdkmanager`, `ndk`, `cmake`, `platform-tools`).
+
 APK: `app/build/outputs/apk/.../tvslideshow-<версия>.apk` (например `tvslideshow-0.5.0.apk`).
 
-Установка: скопировать APK на устройство (USB/флешка) и установить, либо
-`adb install tvslideshow-0.5.0.apk`.
+### Установка по adb (Android TV по сети)
+
+На ТВ должна быть включена «Отладка по USB» / ADB по сети. adb — в
+`platform-tools` SDK (при установке через Homebrew: `/opt/homebrew/share/android-commandlinetools/platform-tools/adb`).
+
+```bash
+adb connect 192.168.0.130:5555          # подключение к ТВ по сети
+adb devices                             # статус: device
+adb -s 192.168.0.130:5555 install -r app/build/outputs/apk/release/tvslideshow-<версия>.apk
+```
+
+`-r` — переустановка поверх с сохранением данных (тот же debug-ключ подписи).
+Альтернатива: скопировать APK на устройство (USB/флешка) и установить вручную.
 
 ## Структура проекта
 
