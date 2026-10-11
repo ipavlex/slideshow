@@ -5,7 +5,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.pzarubin.tvslideshow.data.auth.TokenStore
+import com.pzarubin.tvslideshow.data.auth.WebDavStore
 import com.pzarubin.tvslideshow.data.settings.ResumeStore
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
 import com.pzarubin.tvslideshow.data.source.YandexPublicAlbum
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         findViewById<View>(R.id.btn_yandex).setOnClickListener {
-            val target = if (TokenStore(this).hasToken) {
+            val target = if (WebDavStore(this).hasCredentials) {
                 YandexBrowseActivity::class.java
             } else {
                 YandexLoginActivity::class.java
@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
                     .putExtra(SlideshowActivity.EXTRA_SOURCE_TYPE, SlideshowActivity.SOURCE_LOCAL)
                     .putExtra(SlideshowActivity.EXTRA_FOLDER_PATH, payload)
             "yandex" ->
-                if (!TokenStore(this).hasToken) null
+                if (!WebDavStore(this).hasCredentials) null
                 else Intent(this, SlideshowActivity::class.java)
                     .putExtra(SlideshowActivity.EXTRA_SOURCE_TYPE, SlideshowActivity.SOURCE_YANDEX)
                     .putExtra(SlideshowActivity.EXTRA_YANDEX_PATH, payload.ifBlank { "disk:/" })

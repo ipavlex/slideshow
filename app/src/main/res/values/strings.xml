@@ -66,28 +66,9 @@
 
     <!-- Вход Яндекс.Диск -->
     <string name="login_title">Подключение Яндекс Диска</string>
-    <string name="login_description">Войдите в аккаунт Яндекса, чтобы открыть фотографии на Диске.</string>
-    <string name="login_step">Откройте страницу авторизации и введите код:</string>
-    <string name="login_open_url">Адрес для входа</string>
-    <string name="login_code_label">Код подтверждения</string>
-    <string name="login_waiting">Ожидаем подтверждения авторизации…</string>
-    <string name="login_success">Аккаунт подключён</string>
-    <string name="login_error">Не удалось подключиться. Проверьте соединение и повторите попытку.</string>
-    <string name="login_button">Проверить подключение</string>
-    <string name="login_qr_description">Отсканируйте QR-код телефоном или откройте адрес на другом устройстве.</string>
 
-    <!-- Вход Яндекс.Диск (статусы опроса, используются в коде) -->
+    <!-- Вход Яндекс.Диск -->
     <string name="yandex_title">Яндекс.Диск</string>
-    <string name="yandex_instruction">На телефоне или компьютере откройте:</string>
-    <string name="yandex_code_label">И введите код:</string>
-    <string name="yandex_qr_hint">QR-код для входа</string>
-    <string name="yandex_requesting">Получение кода…</string>
-    <string name="yandex_waiting">Ожидание подтверждения…</string>
-    <string name="yandex_slow_down">Слишком часто проверяем, ждём подольше…</string>
-    <string name="yandex_success">Авторизовано!</string>
-    <string name="yandex_denied">Доступ отклонён</string>
-    <string name="yandex_expired">Код истёк, попробуйте ещё раз</string>
-    <string name="yandex_error">Ошибка</string>
     <string name="yandex_start_here">Начать слайдшоу здесь</string>
 
     <!-- Настройки -->
@@ -150,7 +131,6 @@
     <string name="menu_yandex">Открыть Яндекс Диск</string>
     <string name="menu_settings">Открыть настройки</string>
     <string name="content_description_logo">Логотип приложения</string>
-    <string name="content_description_qr">QR-код для авторизации</string>
     <string name="content_description_folder">Папка</string>
     <string name="content_description_photo">Миниатюра фотографии</string>
     <string name="focus_hint">Выбрано</string>
@@ -171,8 +151,14 @@
     <string name="link_example_a">Например: https://disk.yandex.ru/a/cNNwCu9VIXodbA</string>
     <string name="link_example_b">ID — часть после /a/: cNNwCu9VIXodbA</string>
 
-    <!-- Логин -->
-    <string name="login_instruction_long">Отсканируйте QR-код или откройте ссылку на телефоне и введите код</string>
+    <!-- Логин (WebDAV: логин + пароль приложения) -->
+    <string name="webdav_instruction">Войдите в Яндекс ID: id.yandex.ru → Безопасность → Пароли приложений. Создайте пароль приложения и введите его вместе с логином.</string>
+    <string name="webdav_hint_login">Логин Яндекса</string>
+    <string name="webdav_hint_password">Пароль приложения</string>
+    <string name="webdav_btn_login">Войти</string>
+    <string name="webdav_checking">Проверяем подключение…</string>
+    <string name="webdav_invalid">Неверный логин или пароль</string>
+    <string name="webdav_fill_fields">Заполните логин и пароль</string>
 
     <!-- OSD слайдшоу -->
     <string name="osd_hints">← → слайд · ↑ ↓ скорость · ОК — пауза · Назад — выход</string>

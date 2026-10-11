@@ -25,7 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaSession
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.albums.AlbumStore
-import com.pzarubin.tvslideshow.data.auth.TokenStore
+import com.pzarubin.tvslideshow.data.auth.WebDavStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
 import com.pzarubin.tvslideshow.data.settings.ResumeStore
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
@@ -33,7 +33,7 @@ import com.pzarubin.tvslideshow.data.source.AlbumSource
 import com.pzarubin.tvslideshow.data.source.FolderSource
 import com.pzarubin.tvslideshow.data.source.MediaItem
 import com.pzarubin.tvslideshow.data.source.MediaSource
-import com.pzarubin.tvslideshow.data.source.YandexClient
+import com.pzarubin.tvslideshow.data.source.WebDavClient
 import com.pzarubin.tvslideshow.data.source.YandexDiskSource
 import com.pzarubin.tvslideshow.data.source.YandexPublicAlbum
 import com.pzarubin.tvslideshow.domain.PlaylistBuilder
@@ -109,13 +109,12 @@ class SlideshowActivity : AppCompatActivity() {
         var albumUrl: String? = null
         var albumIds: List<String>? = null
         if (sourceType == SOURCE_YANDEX) {
-            val token = TokenStore(this).accessToken
-            if (token == null) {
+            if (!WebDavStore(this).hasCredentials) {
                 finish()
                 return
             }
             source = YandexDiskSource(
-                YandexClient(TokenStore(this), SlideCache(this)),
+                WebDavClient(WebDavStore(this), SlideCache(this)),
                 intent.getStringExtra(EXTRA_YANDEX_PATH) ?: "disk:/"
             )
         } else if (sourceType == SOURCE_ALBUM) {

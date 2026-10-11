@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Вход в Яндекс.Диск (прототип 03): карточка по центру из двух колонок —
-    слева QR на белой плашке + адрес, справа инструкция, код подтверждения,
-    статус ожидания со спиннером. Выход — системная клавиша «Назад».
+    Вход в Яндекс.Диск: карточка по центру с формой — логин и «пароль
+    приложения» Яндекса (WebDAV, Basic auth). Выход — системная клавиша «Назад».
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
@@ -31,74 +30,69 @@
         android:layout_height="@dimen/zero_size"
         android:layout_weight="1"/>
 
-    <!-- Карточка: QR слева, код и статус справа. -->
+    <!-- Карточка: форма входа по логину и паролю приложения. -->
     <LinearLayout
         android:layout_width="@dimen/login_card_width" android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:orientation="vertical"
         android:background="@drawable/login_card"
         android:padding="@dimen/hud_padding_x">
 
-        <!-- Левая колонка: QR на белой плашке + адрес под ним. -->
+        <!-- Инструкция: где взять пароль приложения. -->
+        <TextView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/section_spacing"
+            android:text="@string/webdav_instruction"
+            android:textColor="@color/text_secondary"
+            style="@style/TextAppearance.TvSlideshow.Body"/>
+
+        <!-- Поля: логин (actionNext) → пароль приложения (actionDone = вход). -->
+        <EditText
+            android:id="@+id/login_username"
+            android:layout_width="match_parent" android:layout_height="@dimen/menu_item_height"
+            android:background="@drawable/bg_input"
+            android:hint="@string/webdav_hint_login"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:singleLine="true"
+            android:imeOptions="actionNext"
+            android:maxLines="1"
+            android:paddingStart="@dimen/medium_spacing"
+            android:paddingEnd="@dimen/medium_spacing"/>
+        <EditText
+            android:id="@+id/login_password"
+            android:layout_width="match_parent" android:layout_height="@dimen/menu_item_height"
+            android:layout_marginTop="@dimen/medium_spacing"
+            android:background="@drawable/bg_input"
+            android:hint="@string/webdav_hint_password"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:inputType="textPassword"
+            android:imeOptions="actionDone"
+            android:maxLines="1"
+            android:paddingStart="@dimen/medium_spacing"
+            android:paddingEnd="@dimen/medium_spacing"/>
+
+        <!-- Ряд прогресс + статус проверки. -->
         <LinearLayout
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:orientation="vertical" android:gravity="center_horizontal">
-            <FrameLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/section_spacing"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <ProgressBar android:id="@+id/login_progress"
+                android:layout_width="@dimen/icon_size" android:layout_height="@dimen/icon_size"
+                android:indeterminate="true"
+                android:visibility="gone"/>
+            <TextView android:id="@+id/login_status"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:background="@drawable/qr_card"
-                android:padding="@dimen/qr_card_padding">
-                <ImageView android:id="@+id/login_qr"
-                    android:layout_width="@dimen/qr_size" android:layout_height="@dimen/qr_size"
-                    android:contentDescription="@string/content_description_qr"
-                    android:scaleType="fitCenter"/>
-            </FrameLayout>
-            <TextView android:id="@+id/login_url"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/medium_spacing"
-                android:gravity="center" android:maxLines="2"
+                android:layout_marginStart="@dimen/medium_spacing"
                 style="@style/TextAppearance.TvSlideshow.Caption"/>
         </LinearLayout>
 
-        <!-- Правая колонка: инструкция, код, статус со спиннером. -->
-        <LinearLayout
-            android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/large_spacing"
-            android:orientation="vertical" android:gravity="center_vertical">
-            <TextView
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/section_spacing"
-                android:text="@string/login_instruction_long"
-                android:textColor="@color/text_secondary"
-                style="@style/TextAppearance.TvSlideshow.Body"/>
-            <TextView android:id="@+id/login_code"
-                android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:textColor="@color/text_primary"
-                android:textSize="@dimen/login_code_text"
-                android:textStyle="bold"
-                android:fontFamily="monospace"
-                android:letterSpacing="0.1"/>
-            <LinearLayout
-                android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/section_spacing"
-                android:orientation="horizontal" android:gravity="center_vertical">
-                <ProgressBar android:id="@+id/login_progress"
-                    android:layout_width="@dimen/icon_size" android:layout_height="@dimen/icon_size"
-                    android:indeterminate="true"
-                    android:visibility="gone"/>
-                <TextView android:id="@+id/login_status"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/medium_spacing"
-                    style="@style/TextAppearance.TvSlideshow.Caption"/>
-            </LinearLayout>
-            <Button android:id="@+id/btn_login_retry"
-                android:layout_width="wrap_content" android:layout_height="@dimen/menu_item_height"
-                android:layout_marginTop="@dimen/section_spacing"
-                android:text="@string/login_button" android:textSize="@dimen/text_caption"
-                android:focusable="true" android:clickable="true"/>
-        </LinearLayout>
+        <Button android:id="@+id/btn_login"
+            android:layout_width="wrap_content" android:layout_height="@dimen/menu_item_height"
+            android:layout_marginTop="@dimen/section_spacing"
+            android:text="@string/webdav_btn_login" android:textSize="@dimen/text_caption"
+            android:focusable="true" android:clickable="true"/>
     </LinearLayout>
 
     <Space

@@ -28,12 +28,17 @@ class SlideCache(
     fun file(key: String): File = File(dir, key)
 
     /** Скачивает [url] в кэш (если ещё нет) и возвращает файл. */
-    suspend fun download(url: String, key: String): File = withContext(Dispatchers.IO) {
+    suspend fun download(
+        url: String,
+        key: String,
+        headers: Map<String, String> = emptyMap()
+    ): File = withContext(Dispatchers.IO) {
         val f = file(key)
         if (f.exists() && f.length() > 0L) return@withContext f
 
-        val req = Request.Builder().url(url).build()
-        client.newCall(req).execute().use { resp ->
+        val builder = Request.Builder().url(url)
+        headers.forEach { (name, value) -> builder.header(name, value) }
+        client.newCall(builder.build()).execute().use { resp ->
             if (!resp.isSuccessful) throw IOException("HTTP ${resp.code}")
             resp.body?.byteStream()?.use { input ->
                 FileOutputStream(f).use { output -> input.copyTo(output) }

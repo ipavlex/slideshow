@@ -6,13 +6,12 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-// Секреты (client_id и т.п.) хранятся в отдельном файле и читаются на сборке.
+// Секреты (параметры релизной подписи) хранятся в отдельном файле и читаются на сборке.
+// Ключей Яндекс.Диска в сборке нет: вход — по WebDAV (логин + пароль приложения).
 val secretsFile = rootProject.file("app/secrets.properties")
 val secrets = Properties().apply {
     if (secretsFile.exists()) secretsFile.inputStream().use { load(it) }
 }
-val yandexClientId = secrets.getProperty("YANDEX_CLIENT_ID", "")
-val yandexClientSecret = secrets.getProperty("YANDEX_CLIENT_SECRET", "")
 
 // Релизная подпись: параметры в app/secrets.properties (не в git).
 // Если конфига нет — release подписывается debug-ключом (sideload-сборка).
@@ -26,8 +25,8 @@ val hasReleaseSigning = listOf(
 
 // Имя приложения (slug) и версия — используются в имени APK.
 val appName = "tvslideshow"
-val appVersionName = "0.9.28"
-val appVersionCode = 39
+val appVersionName = "0.10.0"
+val appVersionCode = 40
 
 android {
     namespace = "com.pzarubin.tvslideshow"
@@ -39,9 +38,6 @@ android {
         targetSdk = 34
         versionCode = appVersionCode
         versionName = appVersionName
-
-        buildConfigField("String", "YANDEX_CLIENT_ID", "\"$yandexClientId\"")
-        buildConfigField("String", "YANDEX_CLIENT_SECRET", "\"$yandexClientSecret\"")
 
         ndk {
             // Нативный HEIC-декодер (libheif) собирается для этих ABI.
@@ -57,7 +53,8 @@ android {
     }
 
     buildFeatures {
-        buildConfig = true
+        // BuildConfig не используется — ключей в сборке нет.
+        buildConfig = false
     }
 
     signingConfigs {
@@ -117,7 +114,6 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.4.1")
     implementation("androidx.media3:media3-session:1.4.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.google.zxing:core:3.5.3")
     // Локальные нативные обёртки (например, libheif для HEIC).
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
 }

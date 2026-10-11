@@ -1,132 +1,86 @@
 package com.pzarubin.tvslideshow.ui
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
-import android.widget.ImageView
+import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.common.BitMatrix
-import com.google.zxing.qrcode.QRCodeWriter
 import com.pzarubin.tvslideshow.R
-import com.pzarubin.tvslideshow.data.auth.TokenStore
-import com.pzarubin.tvslideshow.data.auth.YandexAuth
-import com.pzarubin.tvslideshow.data.auth.YandexConfig
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import com.pzarubin.tvslideshow.data.auth.WebDavStore
+import com.pzarubin.tvslideshow.data.cache.SlideCache
+import com.pzarubin.tvslideshow.data.source.WebDavClient
 import kotlinx.coroutines.launch
 
 /**
- * Вход в Яндекс.Диск через device-code: показывает URL и код, опрашивает
- * статус авторизации, при успехе переходит к выбору папки. Кнопка «Проверить
- * подключение» перезапускает опрос.
+ * Вход в Яндекс.Диск через WebDAV: форма с логином и «паролем приложения»
+ * (Basic auth). Креденшелы проверяются PROPFIND-запросом и сохраняются в
+ * [WebDavStore]; при успехе — переход к выбору папки.
  */
 class YandexLoginActivity : AppCompatActivity() {
 
+    private lateinit var loginInput: EditText
+    private lateinit var passwordInput: EditText
     private lateinit var statusView: TextView
-    private lateinit var urlView: TextView
-    private lateinit var codeView: TextView
-    private lateinit var qrView: ImageView
     private lateinit var progressView: ProgressBar
-    private lateinit var tokenStore: TokenStore
-    private var pollJob: Job? = null
+    private lateinit var loginButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_yandex_login)
 
-        urlView = findViewById(R.id.login_url)
-        codeView = findViewById(R.id.login_code)
-        qrView = findViewById(R.id.login_qr)
+        loginInput = findViewById(R.id.login_username)
+        passwordInput = findViewById(R.id.login_password)
         statusView = findViewById(R.id.login_status)
         progressView = findViewById(R.id.login_progress)
-        tokenStore = TokenStore(this)
+        loginButton = findViewById(R.id.btn_login)
 
-        findViewById<Button>(R.id.btn_login_retry).setOnClickListener { startAuth() }
-
-        startAuth()
+        loginButton.setOnClickListener { submit() }
+        // DONE в поле пароля — сабмит формы, как кнопка «Войти».
+        passwordInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                submit()
+                true
+            } else {
+                false
+            }
+        }
     }
 
-    private fun startAuth() {
-        pollJob?.cancel()
-        pollJob = lifecycleScope.launch {
-            statusView.text = getString(R.string.yandex_requesting)
-            urlView.text = ""
-            codeView.text = ""
-            qrView.setImageBitmap(null)
-            progressView.visibility = View.VISIBLE
+    private fun submit() {
+        val username = loginInput.text.toString().trim()
+        val password = passwordInput.text.toString()
+        if (username.isEmpty() || password.isEmpty()) {
+            statusView.text = getString(R.string.webdav_fill_fields)
+            return
+        }
+        loginButton.isEnabled = false
+        progressView.visibility = View.VISIBLE
+        statusView.text = getString(R.string.webdav_checking)
+        lifecycleScope.launch {
+            val store = WebDavStore(this@YandexLoginActivity)
             try {
-                val code = YandexAuth.requestDeviceCode(YandexConfig.CLIENT_ID, tokenStore.deviceId)
-                urlView.text = code.verificationUrl
-                codeView.text = code.userCode
-                qrView.setImageBitmap(generateQrCode(code.verificationUrl, 512))
-                statusView.text = getString(R.string.yandex_waiting)
-
-                var interval = code.intervalSeconds.coerceAtLeast(1)
-                while (true) {
-                    delay(interval * 1000L)
-                    when (val r = YandexAuth.pollToken(YandexConfig.CLIENT_ID, code.deviceCode)) {
-                        is YandexAuth.PollResult.Success -> {
-                            tokenStore.accessToken = r.token.accessToken
-                            tokenStore.refreshToken = r.token.refreshToken
-                            statusView.text = getString(R.string.yandex_success)
-                            progressView.visibility = View.GONE
-                            startActivity(
-                                Intent(this@YandexLoginActivity, YandexBrowseActivity::class.java)
-                            )
-                            finish()
-                            return@launch
-                        }
-                        YandexAuth.PollResult.Pending -> Unit
-                        // RFC 8628: при slow_down / 429 интервал растёт на 5 секунд,
-                        // опрос не прерывается — код на ya.ru/device остаётся живым.
-                        YandexAuth.PollResult.SlowDown -> {
-                            interval += 5
-                            statusView.text = getString(R.string.yandex_slow_down)
-                        }
-                        YandexAuth.PollResult.Denied -> {
-                            statusView.text = getString(R.string.yandex_denied)
-                            progressView.visibility = View.GONE
-                            return@launch
-                        }
-                        YandexAuth.PollResult.Expired -> {
-                            statusView.text = getString(R.string.yandex_expired)
-                            progressView.visibility = View.GONE
-                            return@launch
-                        }
-                        is YandexAuth.PollResult.Error -> {
-                            statusView.text = r.message
-                            progressView.visibility = View.GONE
-                            return@launch
-                        }
-                    }
+                val ok = WebDavClient(store, SlideCache(this@YandexLoginActivity))
+                    .verify(username, password)
+                if (ok) {
+                    store.save(username, password)
+                    startActivity(
+                        Intent(this@YandexLoginActivity, YandexBrowseActivity::class.java)
+                    )
+                    finish()
+                } else {
+                    statusView.text = getString(R.string.webdav_invalid)
                 }
             } catch (e: Exception) {
-                statusView.text = e.message ?: getString(R.string.yandex_error)
+                statusView.text = e.message ?: getString(R.string.webdav_invalid)
+            } finally {
+                loginButton.isEnabled = true
                 progressView.visibility = View.GONE
             }
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        pollJob?.cancel()
-    }
-
-    private fun generateQrCode(text: String, size: Int): Bitmap {
-        val matrix: BitMatrix = QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, size, size)
-        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        for (x in 0 until size) {
-            for (y in 0 until size) {
-                bmp.setPixel(x, y, if (matrix[x, y]) Color.BLACK else Color.WHITE)
-            }
-        }
-        return bmp
     }
 }

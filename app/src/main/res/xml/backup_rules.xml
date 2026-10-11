@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Пароль приложения Яндекса не должен уезжать в бэкапы (API ≤ 30). -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="webdav_auth.xml" />
+</full-backup-content>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Пароль приложения Яндекса не должен уезжать в облачные бэкапы
+     и перенос на новое устройство (API 31+). -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="webdav_auth.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="webdav_auth.xml" />
+    </device-transfer>
+</data-extraction-rules>

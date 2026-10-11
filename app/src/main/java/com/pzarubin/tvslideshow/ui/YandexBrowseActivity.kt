@@ -17,11 +17,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
-import com.pzarubin.tvslideshow.data.auth.TokenStore
+import com.pzarubin.tvslideshow.data.auth.WebDavStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
 import com.pzarubin.tvslideshow.data.source.MediaFileTypes
-import com.pzarubin.tvslideshow.data.source.YandexClient
+import com.pzarubin.tvslideshow.data.source.UnauthorizedException
+import com.pzarubin.tvslideshow.data.source.WebDavClient
 import com.pzarubin.tvslideshow.data.source.YandexPublicAlbum
 import kotlinx.coroutines.launch
 
@@ -42,7 +43,7 @@ class YandexBrowseActivity : AppCompatActivity() {
 
     private var mode = Mode.HUB
     private var currentPath = ROOT
-    private lateinit var client: YandexClient
+    private lateinit var client: WebDavClient
     private lateinit var grid: RecyclerView
     private lateinit var pathView: TextView
     private lateinit var titleView: TextView
@@ -51,7 +52,7 @@ class YandexBrowseActivity : AppCompatActivity() {
     private lateinit var loadingView: View
     private lateinit var linkPanel: View
     private lateinit var linkInput: EditText
-    private var entries = listOf<YandexClient.Entry>()
+    private var entries = listOf<WebDavClient.Entry>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +67,7 @@ class YandexBrowseActivity : AppCompatActivity() {
         linkPanel = findViewById(R.id.link_panel)
         linkInput = findViewById(R.id.link_input)
 
-        client = YandexClient(TokenStore(this), SlideCache(this))
+        client = WebDavClient(WebDavStore(this), SlideCache(this))
 
         startButton.setOnClickListener { startSlideshowHere() }
 
@@ -158,7 +159,7 @@ class YandexBrowseActivity : AppCompatActivity() {
                 entries = client.listEntries(currentPath)
                     .filter { (it.isDir || it.mediaType == "image") && !MediaFileTypes.isIgnored(it.name) }
                     .sortedWith(
-                        compareBy<YandexClient.Entry> { !it.isDir }
+                        compareBy<WebDavClient.Entry> { !it.isDir }
                             .thenBy { it.name.lowercase() }
                     )
 
@@ -173,6 +174,14 @@ class YandexBrowseActivity : AppCompatActivity() {
                     }
                     // Фото-файлы не кликабельны — запуск слайдшоу кнопкой.
                 }
+            } catch (e: UnauthorizedException) {
+                // Креденшелы недействительны (пароль отозван/сменён) — чистим
+                // и возвращаем на экран входа, иначе пользователь застрянет
+                // здесь с пустым списком без возможности перелогиниться.
+                WebDavStore(this@YandexBrowseActivity).clear()
+                startActivity(Intent(this@YandexBrowseActivity, YandexLoginActivity::class.java))
+                finish()
+                return@launch
             } catch (e: Exception) {
                 Toast.makeText(this@YandexBrowseActivity, e.message, Toast.LENGTH_LONG).show()
             } finally {
@@ -185,7 +194,7 @@ class YandexBrowseActivity : AppCompatActivity() {
         }
     }
 
-    private fun YandexClient.Entry.toCard(): GridCard = if (isDir) {
+    private fun WebDavClient.Entry.toCard(): GridCard = if (isDir) {
         // Папка: кликабельна, подпись не нужна.
         GridCard(name, R.drawable.ic_folder, isDir = true)
     } else {
@@ -261,7 +270,7 @@ class YandexBrowseActivity : AppCompatActivity() {
 
     private fun startSlideshowHere() {
         if (mode != Mode.BROWSE) return
-        if (!TokenStore(this).hasToken) return
+        if (!WebDavStore(this).hasCredentials) return
         startActivity(
             Intent(this, SlideshowActivity::class.java)
                 .putExtra(SlideshowActivity.EXTRA_SOURCE_TYPE, SlideshowActivity.SOURCE_YANDEX)

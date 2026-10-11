@@ -21,7 +21,7 @@
 | Стек / фреймворк | Kotlin + Leanback (классические Views) |
 | Тип контента | Фото + видео |
 | Выбор локальной папки | SAF — `ACTION_OPEN_DOCUMENT_TREE` |
-| Авторизация Я.Диск | Device-code flow (ввод кода с телефона/ПК) |
+| Авторизация Я.Диск | WebDAV + Basic auth (логин + пароль приложения) |
 | Min SDK | API 28 (Android 9) |
 | Распространение | Sideload APK (release-сборка с подписью) |
 
@@ -34,8 +34,8 @@
 | Видео | `androidx.media3:media3-exoplayer` + `media3-session` | Проигрывание видео, MediaSession |
 | Фото | `ImageDecoder` (`BitmapLoader`) | Декодирование с уменьшением, EXIF, защита от OOM |
 | Локальный источник | SAF / `DocumentFile` | Чтение папки, персистентное разрешение |
-| Я.Диск | `OkHttp` + `org.json` | REST API |
-| Хранение токенов | `SharedPreferences` (`TokenStore`) | OAuth refresh-token (на будущее — EncryptedSharedPreferences) |
+| Я.Диск | `OkHttp` (WebDAV: PROPFIND/GET) | Листинг и скачивание файлов |
+| Хранение креденшелов | `SharedPreferences` (`WebDavStore`) | Логин + пароль приложения (на будущее — EncryptedSharedPreferences) |
 | Настройки | `SharedPreferences` (`SettingsStore`) | Порядок, перемешивание, длительность, рекурсия |
 | Асинхронность | `Coroutines` | Загрузка/прекэш |
 | Min SDK / target | 28 / 34 | |
@@ -51,7 +51,7 @@ ui (Leanback Activities)
         │
      data (MediaSource, Repository, кэш)
         │
-  platform (SAF, YandexDisk API, OAuth, Media3)
+  platform (SAF, WebDAV Яндекс.Диска, Media3)
 ```
 
 ### 4.1. Пакетная структура
@@ -61,9 +61,7 @@ app/src/main/java/com/pzarubin/tvslideshow/
 ├── MainActivity.kt            # главный экран: выбор источника
 ├── data/
 │   ├── auth/
-│   │   ├── YandexAuth.kt      # OAuth device-code flow
-│   │   ├── YandexConfig.kt    # client_id (из BuildConfig), scope, device name
-│   │   └── TokenStore.kt      # access/refresh токены, device_id
+│   │   └── WebDavStore.kt      # логин + пароль приложения (WebDAV, Basic auth)
 │   ├── cache/
 │   │   └── SlideCache.kt      # файловый кэш для Яндекс.Диска
 │   ├── albums/
@@ -75,8 +73,8 @@ app/src/main/java/com/pzarubin/tvslideshow/
 │       ├── MediaSource.kt     # интерфейс источника
 │       ├── MediaItem.kt       # модель слайда (фото/видео)
 │       ├── LocalFolderSource.kt   # SAF
-│       ├── YandexDiskSource.kt    # REST
-│       ├── YandexClient.kt    # низкоуровневый REST-клиент Диска
+│       ├── YandexDiskSource.kt    # WebDAV
+│       ├── WebDavClient.kt      # низкоуровневый WebDAV-клиент Диска (PROPFIND/GET)
 │       ├── YandexPublicAlbum.kt   # веб-галерея публичных альбомов (недок. API)
 │       └── AlbumSource.kt     # источник: публичные альбомы Я.Диска
 ├── domain/
@@ -92,7 +90,7 @@ app/src/main/java/com/pzarubin/tvslideshow/
 │   └── BitmapLoader.kt        # декодирование изображений
 └── ui/
     ├── SlideshowActivity.kt   # полноэкранный показ
-    ├── YandexLoginActivity.kt # показ кода device-code
+    ├── YandexLoginActivity.kt # форма входа: логин + пароль приложения
     ├── YandexBrowseActivity.kt# хаб Яндекс.Диска: «Альбомы» / «Файлы» /
     │                          # «Ссылка на альбом»; «Файлы» — браузер папок
     │                          # и фото-файлов Диска
@@ -134,9 +132,9 @@ data class MediaItem(
 - Показ напрямую по `Uri` (фото — декодер, видео — Media3). Кэш не обязателен.
 
 **`YandexDiskSource`:**
-- OAuth device-code → access/refresh token.
-- Листинг: `GET /v1/disk/resources?path=...`.
-- Загрузка: `GET /v1/disk/resources/download?path=...` → временная ссылка.
+- Вход: логин + «пароль приложения» (Basic auth, `WebDavStore`).
+- Листинг: WebDAV `PROPFIND` Depth:1 на `webdav.yandex.ru` (разбор 207-multistatus).
+- Загрузка: `GET` файла напрямую в локальный кэш с Authorization-заголовком.
 - Обязательный локальный кэш (`SlideCache`) — стримить фото с Ken Burns по сети нельзя.
 
 **`AlbumSource` (публичные альбомы):**
@@ -206,7 +204,9 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 - Целевая команда: `./gradlew assembleRelease` → `app/build/outputs/apk/release/tvslideshow-<версия>.apk` (имя формируется из названия проекта и `versionName`).
 - Флаг `android.leanback` + `LEANBACK_LAUNCHER` intent-filter, `android.hardware.touchscreen` not required.
 - Banner для TV-лаунчера (`android:banner`).
-- Секреты (client_id и т.п.) хранятся в `app/secrets.properties` (gitignored) и читаются на этапе сборки через `buildConfigField` → `BuildConfig`.
+- Ключей Яндекс.Диска в сборке нет (`buildConfig = false`): вход — по WebDAV
+  с логином и паролем приложения, вводится на ТВ. В `app/secrets.properties`
+  (gitignored) — только параметры релизной подписи.
 
 ## 8. Риски
 
@@ -215,5 +215,5 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 | SAF-пикер на TV неудобен | Свой браузер папок для Диска (`YandexBrowseActivity`) |
 | Плавность Ken Burns на слабом GPU | Аппаратное декодирование, ограничение размера декодируемых Bitmap (`BitmapLoader`); заморозка уходящего слоя на время кроссфейда; клампинг pan по запасу оси |
 | Большие видео (4K) на Mi Box | Прогрессивная загрузка, ограничение разрешения при необходимости |
-| OAuth Я.Диск без браузера | Device-code flow решает; хранение refresh-token в SharedPreferences |
+| Ввод пароля приложения с пульта | Экран входа — форма с текстовыми полями; креденшелы в `SharedPreferences` (`WebDavStore`) |
 | Отзыв SAF-разрешения / перезагрузка | Пере-валидация URI при старте, повторный выбор папки |

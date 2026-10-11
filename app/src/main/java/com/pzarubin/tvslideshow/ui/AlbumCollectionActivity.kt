@@ -13,9 +13,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.albums.AlbumStore
-import com.pzarubin.tvslideshow.data.auth.TokenStore
+import com.pzarubin.tvslideshow.data.auth.WebDavStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
-import com.pzarubin.tvslideshow.data.source.YandexClient
+import com.pzarubin.tvslideshow.data.source.UnauthorizedException
+import com.pzarubin.tvslideshow.data.source.WebDavClient
 import com.pzarubin.tvslideshow.data.source.YandexPublicAlbum
 import com.pzarubin.tvslideshow.playback.Thumbnails
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ import kotlinx.coroutines.launch
  */
 class AlbumCollectionActivity : AppCompatActivity() {
 
-    private lateinit var client: YandexClient
+    private lateinit var client: WebDavClient
     private lateinit var store: AlbumStore
     private lateinit var api: YandexPublicAlbum
     private lateinit var cache: SlideCache
@@ -47,7 +48,7 @@ class AlbumCollectionActivity : AppCompatActivity() {
         setContentView(R.layout.activity_album_collection)
 
         diskPath = intent.getStringExtra(EXTRA_DISK_PATH) ?: DEFAULT_PATH
-        client = YandexClient(TokenStore(this), SlideCache(this))
+        client = WebDavClient(WebDavStore(this), SlideCache(this))
         store = AlbumStore(this)
         api = YandexPublicAlbum()
         cache = SlideCache(this)
@@ -107,6 +108,12 @@ class AlbumCollectionActivity : AppCompatActivity() {
                 } else {
                     ""
                 }
+            } catch (e: UnauthorizedException) {
+                // Пароль отозван/сменён — на экран входа (как в YandexBrowseActivity).
+                WebDavStore(this@AlbumCollectionActivity).clear()
+                startActivity(Intent(this@AlbumCollectionActivity, YandexLoginActivity::class.java))
+                finish()
+                return@launch
             } catch (e: Exception) {
                 statusView.text = e.message ?: getString(R.string.error_generic)
             } finally {

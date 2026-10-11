@@ -7,7 +7,7 @@ import android.net.Uri
  * Возвращает фото и видео; открытие элемента скачивает файл в локальный кэш.
  */
 class YandexDiskSource(
-    private val client: YandexClient,
+    private val client: WebDavClient,
     private val folderPath: String
 ) : MediaSource {
 
@@ -33,9 +33,9 @@ class YandexDiskSource(
         return Uri.fromFile(client.downloadToCache(path))
     }
 
-    private fun isPhoto(e: YandexClient.Entry): Boolean =
+    private fun isPhoto(e: WebDavClient.Entry): Boolean =
         e.mediaType == "image" || e.mimeType?.startsWith("image/") == true
 
-    private fun isVideo(e: YandexClient.Entry): Boolean =
+    private fun isVideo(e: WebDavClient.Entry): Boolean =
         e.mediaType == "video" || e.mimeType?.startsWith("video/") == true
 }
