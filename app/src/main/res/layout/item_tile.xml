@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Плитка-источник (главная, хаб Яндекса — прототипы 01/02): фиксированный
+    размер, крупная иконка вверху слева, заголовок прижат к низу
+    (weight-Space, как margin-bottom:auto в макете). Подписи на плитке нет —
+    только иконка и заголовок (ревью дизайна).
+    Стиль Widget.TvSlideshow.Tile даёт фон bg_tile (фокус — белая рамка),
+    focusable/clickable и масштаб stateListAnimator.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/Widget.TvSlideshow.Tile"
+    android:layout_width="@dimen/tile_width"
+    android:layout_height="@dimen/tile_height"
+    android:layout_marginEnd="@dimen/tile_gap">
+
+    <ImageView
+        android:id="@+id/tile_icon"
+        android:layout_width="@dimen/tile_icon"
+        android:layout_height="@dimen/tile_icon"
+        android:layout_gravity="start"
+        android:scaleType="fitCenter"/>
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/zero_size"
+        android:layout_weight="1"/>
+
+    <TextView
+        android:id="@+id/tile_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/TextAppearance.TvSlideshow.TileTitle"/>
+</LinearLayout>

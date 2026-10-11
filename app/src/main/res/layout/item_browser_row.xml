@@ -1,24 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Строка списка файл-браузера: миниатюра/иконка слева, название целиком
-     (до двух строк, без обрезки) справа. -->
+<!-- Строка списка файл-браузера (прототип 04): миниатюра/иконка слева на
+     подложке surface_elevated, полное имя (до двух строк, без обрезки),
+     справа метаданные. Фон bg_tv_row: прозрачная → фокус surface + белая рамка;
+     масштаб фокуса — @animator/scale_on_focus. Используется и локальным
+     браузером, и Яндекс.Диском (BrowserListAdapter) — визуал универсальный. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:layout_margin="@dimen/small_spacing"
+    android:layout_marginBottom="@dimen/browser_row_gap"
     android:orientation="horizontal" android:gravity="center_vertical"
-    android:background="@drawable/bg_tv_row" android:padding="@dimen/menu_item_padding"
-    android:minHeight="@dimen/list_row_height"
-    android:focusable="true" android:clickable="true" android:stateListAnimator="@null">
-    <ImageView android:id="@+id/browser_thumbnail" android:layout_width="@dimen/icon_size_large"
-        android:layout_height="@dimen/icon_size_large" android:scaleType="fitCenter"
-        android:contentDescription="@string/content_description_photo"/>
-    <LinearLayout android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
-        android:layout_weight="1" android:layout_marginStart="@dimen/medium_spacing"
-        android:orientation="vertical" android:gravity="center_vertical">
-        <TextView android:id="@+id/name" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_body" android:maxLines="2"/>
-        <TextView android:id="@+id/browser_subtitle" android:layout_width="match_parent"
-            android:layout_height="wrap_content" android:textColor="@color/text_secondary"
-            android:textSize="@dimen/text_caption" android:maxLines="1"/>
-    </LinearLayout>
+    android:minHeight="@dimen/browser_row_min_h"
+    android:paddingStart="@dimen/browser_row_pad_h"
+    android:paddingEnd="@dimen/browser_row_pad_h"
+    android:paddingTop="@dimen/small_spacing"
+    android:paddingBottom="@dimen/small_spacing"
+    android:background="@drawable/bg_tv_row"
+    android:focusable="true" android:clickable="true" android:stateListAnimator="@animator/scale_on_focus_row">
+
+    <!-- Миниатюра: скругление углов применяется в коде (clipToOutline по
+         контуру подложки row_thumb_bg). -->
+    <FrameLayout android:id="@+id/browser_thumb_wrap"
+        android:layout_width="@dimen/browser_thumb" android:layout_height="@dimen/browser_thumb"
+        android:background="@drawable/row_thumb_bg">
+        <ImageView android:id="@+id/browser_thumbnail"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/content_description_photo"/>
+        <!-- Бейдж ▶ у видео (row_play_badge), включается в адаптере. -->
+        <ImageView android:id="@+id/browser_play_badge"
+            android:layout_width="@dimen/icon_size_small" android:layout_height="@dimen/icon_size_small"
+            android:layout_gravity="bottom|end" android:layout_margin="@dimen/small_spacing"
+            android:src="@drawable/row_play_badge" android:visibility="gone"
+            android:contentDescription="@string/badge_video"/>
+    </FrameLayout>
+
+    <!-- Имя файла/папки целиком: две строки, без ellipsize. -->
+    <TextView android:id="@+id/name"
+        style="@style/TextAppearance.TvSlideshow.Body"
+        android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+        android:layout_weight="1" android:layout_marginStart="@dimen/menu_item_spacing"
+        android:maxLines="2"/>
+
+    <!-- Метаданные справа (Caption, text_secondary). -->
+    <TextView android:id="@+id/browser_subtitle"
+        style="@style/TextAppearance.TvSlideshow.Caption"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/menu_item_spacing"
+        android:maxLines="1"/>
 </LinearLayout>

@@ -1,21 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Плитка (главная, источники): карточка surface, фокус — белая рамка, лёгкий подъём. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_enabled="false">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/surface" />
-            <corners android:radius="@dimen/corner_large" />
-        </shape>
-    </item>
+    <!-- Pressed: как фокус — рамка не мигает в момент нажатия ОК. -->
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/surface_pressed" />
-            <stroke android:width="@dimen/focus_stroke_width" android:color="@color/primary" />
+            <solid android:color="@color/surface_elevated" />
+            <stroke android:width="@dimen/focus_stroke_width" android:color="@color/focus_stroke" />
             <corners android:radius="@dimen/corner_large" />
         </shape>
     </item>
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/surface_focused" />
+            <solid android:color="@color/surface_elevated" />
             <stroke android:width="@dimen/focus_stroke_width" android:color="@color/focus_stroke" />
             <corners android:radius="@dimen/corner_large" />
         </shape>

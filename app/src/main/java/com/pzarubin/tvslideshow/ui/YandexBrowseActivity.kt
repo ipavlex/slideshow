@@ -2,18 +2,18 @@ package com.pzarubin.tvslideshow.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
@@ -25,10 +25,15 @@ import com.pzarubin.tvslideshow.data.source.YandexPublicAlbum
 import kotlinx.coroutines.launch
 
 /**
- * Экран Яндекс.Диска. Два режима:
- *  - хаб: три раздела — «Альбомы», «Файлы», «Ссылка на альбом»;
- *  - браузер файлов: сетка папок и фото-файлов, навигация по дереву,
+ * Экран Яндекс.Диска (прототип 02). Два режима:
+ *  - хаб: ряд из трёх плиток — «Альбомы», «Файлы на диске», «Публичная ссылка»;
+ *  - браузер файлов: список папок и фото-файлов, навигация по дереву,
  *    запуск слайдшоу для текущей папки.
+ *
+ * Третья плитка раскрывает панель ввода ссылки (без кнопок): ОК —
+ * подключить, Назад на пустом поле — отмена (возврат к плиткам).
+ * Возврат назад (из браузера в хаб, из хаба на главный экран) —
+ * системной клавишей, как в локальном браузере.
  */
 class YandexBrowseActivity : AppCompatActivity() {
 
@@ -39,7 +44,12 @@ class YandexBrowseActivity : AppCompatActivity() {
     private lateinit var client: YandexClient
     private lateinit var grid: RecyclerView
     private lateinit var pathView: TextView
+    private lateinit var titleView: TextView
+    private lateinit var breadcrumbView: TextView
     private lateinit var startButton: Button
+    private lateinit var loadingView: View
+    private lateinit var linkPanel: View
+    private lateinit var linkInput: EditText
     private var entries = listOf<YandexClient.Entry>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,51 +58,72 @@ class YandexBrowseActivity : AppCompatActivity() {
 
         grid = findViewById(R.id.browse_list)
         pathView = findViewById(R.id.browse_path)
+        titleView = findViewById(R.id.browser_title)
+        breadcrumbView = findViewById(R.id.hub_breadcrumb)
         startButton = findViewById(R.id.btn_start_slideshow)
+        loadingView = findViewById(R.id.browser_loading)
+        linkPanel = findViewById(R.id.link_panel)
+        linkInput = findViewById(R.id.link_input)
 
         client = YandexClient(TokenStore(this), SlideCache(this))
 
-        findViewById<Button>(R.id.btn_back).setOnClickListener { navigateBack() }
         startButton.setOnClickListener { startSlideshowHere() }
 
-        grid.layoutManager = GridLayoutManager(this, GRID_COLUMNS)
+        linkInput.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                event?.keyCode == KeyEvent.KEYCODE_ENTER
+            ) {
+                connectFromInput()
+                true
+            } else {
+                false
+            }
+        }
+
+        grid.layoutManager = LinearLayoutManager(this)
 
         showHub()
     }
 
-    // --- Хаб: три раздела ---
+    // --- Хаб: выбор источника ---
 
     private fun showHub() {
         mode = Mode.HUB
         currentPath = ROOT
-        pathView.text = ""
+        breadcrumbView.visibility = View.VISIBLE
+        // Заголовок «Выберите источник» убран (ревью дизайна): экран
+        // идентифицирует только крошка «Яндекс.Диск».
+        titleView.visibility = View.GONE
+        loadingView.visibility = View.GONE
+        pathView.visibility = View.GONE
         startButton.visibility = View.GONE
-        grid.layoutManager = GridLayoutManager(this, GRID_COLUMNS)
+        grid.visibility = View.VISIBLE
+        linkPanel.visibility = View.GONE
+        centerList()
+        grid.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        // Плитки хаба без подписи — только крупная иконка и название (прототип 02).
         val cards = listOf(
             GridCard(
-                label = getString(R.string.albums_open),
-                iconRes = R.drawable.ic_photo,
-                subtitle = getString(R.string.yandex_albums_subtitle)
+                label = getString(R.string.source_albums_title),
+                iconRes = R.drawable.ic_albums_large
             ),
             GridCard(
-                label = getString(R.string.yandex_files),
-                iconRes = R.drawable.ic_folder,
-                subtitle = getString(R.string.yandex_files_subtitle)
+                label = getString(R.string.source_files_title),
+                iconRes = R.drawable.ic_folder_large
             ),
             GridCard(
-                label = getString(R.string.album_link),
-                iconRes = R.drawable.ic_cloud,
-                subtitle = getString(R.string.album_link_subtitle)
+                label = getString(R.string.source_public_title),
+                iconRes = R.drawable.ic_link_large
             )
         )
-        grid.adapter = GridCardAdapter(lifecycleScope, cards) { position ->
+        grid.adapter = GridCardAdapter(cards) { position ->
             when (position) {
                 0 -> startActivity(
                     Intent(this, AlbumCollectionActivity::class.java)
                         .putExtra(AlbumCollectionActivity.EXTRA_DISK_PATH, ALBUMS_FOLDER)
                 )
                 1 -> showBrowser()
-                else -> showAlbumDialog()
+                else -> showLinkPanel()
             }
         }
     }
@@ -102,13 +133,25 @@ class YandexBrowseActivity : AppCompatActivity() {
     private fun showBrowser() {
         mode = Mode.BROWSE
         currentPath = ROOT
+        breadcrumbView.visibility = View.GONE
+        titleView.visibility = View.VISIBLE
+        titleView.text = getString(R.string.yandex_browse_title)
+        pathView.visibility = View.VISIBLE
         startButton.visibility = View.VISIBLE
+        grid.visibility = View.VISIBLE
+        linkPanel.visibility = View.GONE
+        fillListArea()
         grid.layoutManager = LinearLayoutManager(this)
         loadEntries()
     }
 
     private fun loadEntries() {
         pathView.text = currentPath
+        // Прототип 05: спиннер появляется сразу (в т.ч. по клику на папку),
+        // список скрыт, кнопка слайдшоу недоступна.
+        loadingView.visibility = View.VISIBLE
+        grid.visibility = View.INVISIBLE
+        startButton.isEnabled = false
         lifecycleScope.launch {
             try {
                 entries = client.listEntries(currentPath)
@@ -131,20 +174,76 @@ class YandexBrowseActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@YandexBrowseActivity, e.message, Toast.LENGTH_LONG).show()
+            } finally {
+                loadingView.visibility = View.GONE
+                grid.visibility = View.VISIBLE
+                startButton.isEnabled = true
+                // Фокус мог «потеряться» на скрытом списке — возвращаем на кнопку.
+                if (currentFocus == null) startButton.requestFocus()
             }
         }
     }
 
     private fun YandexClient.Entry.toCard(): GridCard = if (isDir) {
-        GridCard(name, R.drawable.ic_folder)
+        // Папка: кликабельна, подпись не нужна.
+        GridCard(name, R.drawable.ic_folder, isDir = true)
     } else {
+        // Фото: не кликабельно, вместо «фото»-бейджа — размер файла.
         GridCard(
             label = name,
             iconRes = R.drawable.ic_photo,
-            nameColorRes = R.color.text_secondary,
-            subtitle = getString(R.string.badge_photo)
+            subtitle = size?.let { BrowserListAdapter.formatSize(it) }
         )
     }
+
+    // --- Панель ввода ссылки (без кнопок) ---
+
+    /** Раскрывает панель ввода ссылки вместо плиток; фокус — в поле. */
+    private fun showLinkPanel() {
+        grid.visibility = View.GONE
+        linkPanel.visibility = View.VISIBLE
+        linkInput.setText("")
+        linkInput.requestFocus()
+    }
+
+    /** Прячет панель, возвращает плитки и фокус на плитку «Публичная ссылка». */
+    private fun closeLinkPanel() {
+        linkPanel.visibility = View.GONE
+        linkInput.setText("")
+        grid.visibility = View.VISIBLE
+        grid.post {
+            (grid.findViewHolderForAdapterPosition(HUB_LINK_POSITION)?.itemView ?: grid)
+                .requestFocus()
+        }
+    }
+
+    /** ОК в панели: сохраняем ID альбома и запускаем слайдшоу. */
+    private fun connectFromInput() {
+        // Защита от двойного срабатывания (EditorAction + onKeyDown): панель
+        // уже закрыта — повторный вызов ничего не делает.
+        if (linkPanel.visibility != View.VISIBLE) return
+        val id = albumIdFrom(linkInput.text.toString())
+        if (id.isBlank()) return
+        closeLinkPanel()
+        SettingsStore(this).albumUrl = id
+        startActivity(
+            Intent(this, SlideshowActivity::class.java)
+                .putExtra(SlideshowActivity.EXTRA_SOURCE_TYPE, SlideshowActivity.SOURCE_ALBUM)
+                .putExtra(SlideshowActivity.EXTRA_ALBUM_URL, YandexPublicAlbum.albumUrl(id))
+        )
+    }
+
+    /**
+     * Ожидаем только ID альбома; если вставили полную ссылку — вырезаем ID.
+     * Префикс «https://disk.yandex.ru/a/» подставляется автоматически.
+     */
+    private fun albumIdFrom(raw: String): String {
+        val text = raw.trim()
+        val afterPrefix = text.substringAfterLast("/a/", text)
+        return afterPrefix.trim().trimEnd('/')
+    }
+
+    // --- Навигация ---
 
     private fun navigateBack() {
         when (mode) {
@@ -169,62 +268,45 @@ class YandexBrowseActivity : AppCompatActivity() {
         )
     }
 
-    // --- Ссылка на альбом: ввод только ID ---
-
-    /** Диалог ввода ID публичного альбома; префикс ссылки подставляется сам. */
-    private fun showAlbumDialog() {
-        val settings = SettingsStore(this)
-        val input = EditText(this).apply {
-            hint = getString(R.string.album_dialog_hint)
-            setText(settings.albumUrl)
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or
-                android.text.InputType.TYPE_TEXT_VARIATION_URI
-        }
-        val pad = (resources.displayMetrics.density * 16).toInt()
-        val container = FrameLayout(this).apply {
-            setPadding(pad, pad / 2, pad, 0)
-            addView(
-                input,
-                FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            )
-        }
-        AlertDialog.Builder(this)
-            .setTitle(R.string.album_dialog_title)
-            .setView(container)
-            .setPositiveButton(R.string.done) { _, _ ->
-                val id = albumIdFrom(input.text.toString())
-                if (id.isNotBlank()) {
-                    settings.albumUrl = id
-                    startActivity(
-                        Intent(this, SlideshowActivity::class.java)
-                            .putExtra(SlideshowActivity.EXTRA_SOURCE_TYPE, SlideshowActivity.SOURCE_ALBUM)
-                            .putExtra(SlideshowActivity.EXTRA_ALBUM_URL, YandexPublicAlbum.albumUrl(id))
-                    )
-                }
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
-    }
-
     /**
-     * Ожидаем только ID альбома; если вставили полную ссылку — вырезаем ID.
-     * Префикс «https://disk.yandex.ru/a/» подставляется автоматически.
+     * Ключи пульта: в панели перехватываем до super — Назад закрывает
+     * панель (поле пустое), ОК/Enter — подключает. Остальное — навигация.
      */
-    private fun albumIdFrom(raw: String): String {
-        val text = raw.trim()
-        val afterPrefix = text.substringAfterLast("/a/", text)
-        return afterPrefix.trim().trimEnd('/')
-    }
-
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (linkPanel.visibility == View.VISIBLE) {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                closeLinkPanel()
+                return true
+            }
+            if (keyCode == KeyEvent.KEYCODE_ENTER || keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
+                connectFromInput()
+                return true
+            }
+        }
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             navigateBack()
             return true
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    // --- Геометрия списка: центр для плиток хаба, вся область для браузера ---
+
+    /** Ряд плиток хаба — по центру экрана (в прототипе justify-content: center). */
+    private fun centerList() {
+        val lp = grid.layoutParams as FrameLayout.LayoutParams
+        lp.width = ViewGroup.LayoutParams.WRAP_CONTENT
+        lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        lp.gravity = Gravity.CENTER
+        grid.layoutParams = lp
+    }
+
+    private fun fillListArea() {
+        val lp = grid.layoutParams as FrameLayout.LayoutParams
+        lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+        lp.height = ViewGroup.LayoutParams.MATCH_PARENT
+        lp.gravity = Gravity.TOP or Gravity.START
+        grid.layoutParams = lp
     }
 
     private fun parentOf(path: String): String {
@@ -240,6 +322,8 @@ class YandexBrowseActivity : AppCompatActivity() {
 
         /** Спец-папка в корне Диска, в подпапках которой — ссылки на альбомы. */
         const val ALBUMS_FOLDER = "disk:/_albums"
-        private const val GRID_COLUMNS = 5
+
+        /** Позиция плитки «Публичная ссылка» в ряду хаба. */
+        private const val HUB_LINK_POSITION = 2
     }
 }

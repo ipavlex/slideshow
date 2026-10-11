@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Активный сегмент: залит акцентом (радиус сегмента — 9px/2). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/primary" />
+    <corners android:radius="@dimen/corner_segment" />
+</shape>

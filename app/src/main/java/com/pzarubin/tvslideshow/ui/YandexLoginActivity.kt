@@ -4,8 +4,10 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -31,6 +33,7 @@ class YandexLoginActivity : AppCompatActivity() {
     private lateinit var urlView: TextView
     private lateinit var codeView: TextView
     private lateinit var qrView: ImageView
+    private lateinit var progressView: ProgressBar
     private lateinit var tokenStore: TokenStore
     private var pollJob: Job? = null
 
@@ -42,6 +45,7 @@ class YandexLoginActivity : AppCompatActivity() {
         codeView = findViewById(R.id.login_code)
         qrView = findViewById(R.id.login_qr)
         statusView = findViewById(R.id.login_status)
+        progressView = findViewById(R.id.login_progress)
         tokenStore = TokenStore(this)
 
         findViewById<Button>(R.id.btn_login_back).setOnClickListener { finish() }
@@ -57,6 +61,7 @@ class YandexLoginActivity : AppCompatActivity() {
             urlView.text = ""
             codeView.text = ""
             qrView.setImageBitmap(null)
+            progressView.visibility = View.VISIBLE
             try {
                 val code = YandexAuth.requestDeviceCode(YandexConfig.CLIENT_ID, tokenStore.deviceId)
                 urlView.text = code.verificationUrl
@@ -72,6 +77,7 @@ class YandexLoginActivity : AppCompatActivity() {
                             tokenStore.accessToken = r.token.accessToken
                             tokenStore.refreshToken = r.token.refreshToken
                             statusView.text = getString(R.string.yandex_success)
+                            progressView.visibility = View.GONE
                             startActivity(
                                 Intent(this@YandexLoginActivity, YandexBrowseActivity::class.java)
                             )
@@ -82,20 +88,24 @@ class YandexLoginActivity : AppCompatActivity() {
                         YandexAuth.PollResult.SlowDown -> interval += 1
                         YandexAuth.PollResult.Denied -> {
                             statusView.text = getString(R.string.yandex_denied)
+                            progressView.visibility = View.GONE
                             return@launch
                         }
                         YandexAuth.PollResult.Expired -> {
                             statusView.text = getString(R.string.yandex_expired)
+                            progressView.visibility = View.GONE
                             return@launch
                         }
                         is YandexAuth.PollResult.Error -> {
                             statusView.text = r.message
+                            progressView.visibility = View.GONE
                             return@launch
                         }
                     }
                 }
             } catch (e: Exception) {
                 statusView.text = e.message ?: getString(R.string.yandex_error)
+                progressView.visibility = View.GONE
             }
         }
     }

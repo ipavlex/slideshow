@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Подложка миниатюры строки браузера (DESIGN.md §4): приподнятая поверхность,
+     скругление corner_medium. Контур для clipToOutline берётся отсюда (код адаптера). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/surface_elevated" />
+    <corners android:radius="@dimen/corner_medium" />
+</shape>

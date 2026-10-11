@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Папка в строке браузера (прототип 04, .thumb-folder): контур, tint задаёт адаптер. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="@dimen/icon_size" android:height="@dimen/icon_size"
     android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="@color/text_primary" android:pathData="M10 4H2v16h20V6H12l-2-2z" />
+    <path
+        android:pathData="M3,7a2,2 0 0 1 2,-2h4l2,2h8a2,2 0 0 1 2,2v8a2,2 0 0 1 -2,2H5a2,2 0 0 1 -2,-2Z"
+        android:strokeColor="@color/text_primary" android:strokeWidth="1.6"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
 </vector>

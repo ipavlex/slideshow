@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Карточка экрана логина (прототип 03): поверхность surface,
+     радиус карточек. Некликабельная — состояния фокуса не нужны. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/surface" />
+    <corners android:radius="@dimen/corner_large" />
+</shape>

@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>07 · Настройки</title>
+<link rel="stylesheet" href="../css/tv.css">
+<style>
+  /* Список настроек не всегда влезает в экран — прокручиваем сам экран;
+     рамка фокуса не обрезается благодаря scroll-margin у [data-focusable] */
+  .screen {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+  .set-list { padding-bottom: 48px; }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="breadcrumb">Слайдшоу</div>
+  <h1 class="screen-title">Настройки</h1>
+
+  <div class="set-list">
+
+    <div class="set-row" data-focusable data-focus-default role="button">
+      <div class="set-label">Анимация</div>
+      <div class="set-control">
+        <div class="seg" id="segAnim">
+          <button type="button" class="active">Кен Бёрнс</button>
+          <button type="button">Классика</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-row" data-focusable role="button">
+      <div class="set-label">Скорость слайда</div>
+      <div class="set-control">
+        <div class="stepper" id="stepSpeed">
+          <button type="button" class="step-btn" data-dir="-1">−</button>
+          <div class="step-value">10 сек</div>
+          <button type="button" class="step-btn" data-dir="1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-row" data-focusable role="button">
+      <div class="set-label">Зациклить</div>
+      <div class="set-control">
+        <div class="switch on" id="swLoop"></div>
+      </div>
+    </div>
+
+    <div class="set-row" data-focusable role="button">
+      <div class="set-label">Сортировка</div>
+      <div class="set-control">
+        <div class="seg" id="segSort">
+          <button type="button" class="active">Имя</button>
+          <button type="button">Дата изменения</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-row" data-focusable role="button">
+      <div class="set-label">Случайный порядок</div>
+      <div class="set-control">
+        <div class="switch" id="swShuffle"></div>
+      </div>
+    </div>
+
+    <div class="set-row" data-focusable role="button">
+      <div class="set-label">Имя файла на экране</div>
+      <div class="set-control">
+        <div class="switch" id="swFileName"></div>
+      </div>
+    </div>
+
+    <div class="set-row" data-focusable role="button">
+      <div class="set-label">Автозапуск последней папки</div>
+      <div class="set-control">
+        <div class="switch" id="swAuto"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="hints">
+    <span><span class="keycap">← →</span> изменить</span>
+    <span><span class="keycap">Назад</span> назад</span>
+  </div>
+</main>
+
+<script src="../js/tv.js"></script>
+<script>
+(function () {
+  var SPEEDS = [3, 5, 10, 15, 20, 30, 45, 60];
+  var speedIdx = 2; // 10 сек
+
+  function rowOf(el) { return el.closest('.set-row'); }
+
+  function segStep(seg, dir) {
+    var opts = Array.prototype.slice.call(seg.querySelectorAll('button'));
+    var i = opts.findIndex(function (o) { return o.classList.contains('active'); });
+    var n = Math.min(opts.length - 1, Math.max(0, i + dir));
+    if (n !== i) {
+      opts[i].classList.remove('active');
+      opts[n].classList.add('active');
+    }
+  }
+
+  function speedStep(dir) {
+    speedIdx = Math.min(SPEEDS.length - 1, Math.max(0, speedIdx + dir));
+    document.querySelector('#stepSpeed .step-value').textContent = SPEEDS[speedIdx] + ' сек';
+  }
+
+  function toggleSwitch(row) {
+    var sw = row.querySelector('.switch');
+    if (sw) sw.classList.toggle('on');
+  }
+
+  // Перехват ← → для управления элементами строки
+  window.tvKeyIntercept = function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return false;
+    var row = rowOf(document.activeElement);
+    if (!row) return false;
+    var dir = e.key === 'ArrowRight' ? 1 : -1;
+    var seg = row.querySelector('.seg');
+    if (seg) { segStep(seg, dir); }
+    else if (row.querySelector('.stepper')) { speedStep(dir); }
+    else if (row.querySelector('.switch')) { toggleSwitch(row); }
+    else return false;
+    e.preventDefault();
+    return true;
+  };
+
+  // Enter / клик по строке с переключателем
+  document.querySelectorAll('.set-row').forEach(function (row) {
+    row.addEventListener('click', function (e) {
+      if (e.target.closest('.step-btn')) {
+        speedStep(parseInt(e.target.closest('.step-btn').dataset.dir, 10));
+        return;
+      }
+      toggleSwitch(row);
+    });
+  });
+
+  document.querySelectorAll('#stepSpeed .step-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      btn.classList.add('pressed');
+      setTimeout(function () { btn.classList.remove('pressed'); }, 150);
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>04 · Файловый браузер</title>
+<link rel="stylesheet" href="../css/tv.css">
+<style>
+  .watch-btn { margin-top: 28px; align-self: flex-start; }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="breadcrumb">Внутренняя память · DCIM</div>
+  <h1 class="screen-title">Camera 2024</h1>
+
+  <button class="btn watch-btn" data-focusable data-focus-default id="btnWatch">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5Z"/></svg>
+    Смотреть слайдшоу
+  </button>
+
+  <div class="rows">
+    <!-- Папки -->
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb thumb-folder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+        </svg>
+      </div>
+      <div class="name">Отпуск в Сочи</div>
+      <div class="meta">12 фото · 3 видео</div>
+    </div>
+
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb thumb-folder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+        </svg>
+      </div>
+      <div class="name">Неотсортированное</div>
+      <div class="meta">47 файлов</div>
+    </div>
+
+    <!-- Фото -->
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb g1"></div>
+      <div class="name">IMG_4029.jpg</div>
+      <div class="meta">3,2 МБ</div>
+    </div>
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb thumb-loading shimmer"></div>
+      <div class="name">IMG_4030.jpg</div>
+      <div class="meta">2,8 МБ</div>
+    </div>
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb g2"></div>
+      <div class="name">IMG_4031.jpg</div>
+      <div class="meta">4,1 МБ</div>
+    </div>
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb g3"></div>
+      <div class="name">IMG_4032.jpg</div>
+      <div class="meta">3,7 МБ</div>
+    </div>
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb thumb-loading shimmer"></div>
+      <div class="name">IMG_4033.jpg</div>
+      <div class="meta">2,5 МБ</div>
+    </div>
+
+    <!-- Видео -->
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb g4 thumb-video">
+        <span class="vplay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5Z"/></svg></span>
+      </div>
+      <div class="name">VID_20240712_183445.mp4</div>
+      <div class="meta">24,8 МБ</div>
+    </div>
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb g5 thumb-video">
+        <span class="vplay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5Z"/></svg></span>
+      </div>
+      <div class="name">VID_20240713_091512.mp4</div>
+      <div class="meta">41,3 МБ</div>
+    </div>
+    <div class="list-row" data-focusable role="button">
+      <div class="thumb g6"></div>
+      <div class="name">IMG_4034.jpg</div>
+      <div class="meta">3,0 МБ</div>
+    </div>
+  </div>
+
+  <div class="hints">
+    <span><span class="keycap">ОК</span> открыть</span>
+    <span><span class="keycap">Назад</span> назад</span>
+  </div>
+
+  <div class="toast" id="toast">Прототип: открытие папки</div>
+</main>
+
+<script src="../js/tv.js"></script>
+<script>
+(function () {
+  document.getElementById('btnWatch').addEventListener('click', function () {
+    location.href = '08-slideshow.html';
+  });
+
+  // Папки: лёгкий отклик (прототип)
+  var toast = document.getElementById('toast');
+  var toastTimer;
+  document.querySelectorAll('.list-row').forEach(function (row) {
+    row.addEventListener('click', function (e) {
+      if (e.target.closest('#btnWatch')) return;
+      if (!row.querySelector('.thumb-folder')) return;
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 1500);
+    });
+  });
+})();
+</script>
+</body>
+</html>

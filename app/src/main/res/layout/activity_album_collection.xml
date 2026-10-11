@@ -1,19 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Экран «Альбомы»: заголовок + «Обновить», ниже список альбомов.
+    Клик по альбому сразу запускает слайдшоу, назад — системной клавишей
+    (кнопок в шапке нет). clip-флаги — рамка/масштаб фокуса не обрезаются.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:background="@color/background"
+    android:clipChildren="false" android:clipToPadding="false"
     android:paddingStart="@dimen/screen_padding_horizontal"
     android:paddingTop="@dimen/screen_padding_vertical"
     android:paddingEnd="@dimen/screen_padding_horizontal"
     android:paddingBottom="@dimen/screen_padding_vertical">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-        <Button android:id="@+id/btn_albums_back" android:layout_width="wrap_content" android:layout_height="@dimen/menu_item_height" android:background="@drawable/bg_tv_button" android:text="@string/back" android:textColor="@color/text_primary" android:textSize="@dimen/text_caption" android:paddingStart="@dimen/menu_item_padding" android:paddingEnd="@dimen/menu_item_padding" android:focusable="true"/>
         <LinearLayout android:layout_width="@dimen/zero_size" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:paddingStart="@dimen/medium_spacing">
             <TextView android:id="@+id/albums_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/albums_title" style="@style/TextAppearance.TvSlideshow.Title" />
             <TextView android:id="@+id/albums_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption" android:singleLine="true" android:ellipsize="end"/>
         </LinearLayout>
         <Button android:id="@+id/btn_albums_refresh" android:layout_width="wrap_content" android:layout_height="@dimen/menu_item_height" android:layout_marginStart="@dimen/small_spacing" android:background="@drawable/bg_tv_button" android:text="@string/albums_refresh" android:textColor="@color/text_primary" android:textSize="@dimen/text_caption" android:paddingStart="@dimen/menu_item_padding" android:paddingEnd="@dimen/menu_item_padding" android:focusable="true"/>
-        <Button android:id="@+id/btn_albums_start" android:layout_width="wrap_content" android:layout_height="@dimen/menu_item_height" android:layout_marginStart="@dimen/small_spacing" android:background="@drawable/bg_tv_button" android:text="@string/start_slideshow" android:textColor="@color/text_primary" android:textSize="@dimen/text_caption" android:paddingStart="@dimen/menu_item_padding" android:paddingEnd="@dimen/menu_item_padding" android:focusable="true"/>
     </LinearLayout>
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/albums_list" android:layout_width="match_parent" android:layout_height="@dimen/zero_size" android:layout_weight="1" android:clipToPadding="false" android:paddingBottom="@dimen/menu_item_padding" android:scrollbars="none" android:layout_marginTop="@dimen/section_spacing"/>
+    <!-- Отступы краёв: фокусная строка не выходит за видимость и не режется. -->
+    <FrameLayout android:layout_width="match_parent" android:layout_height="@dimen/zero_size" android:layout_weight="1" android:layout_marginTop="@dimen/section_spacing">
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/albums_list" android:layout_width="match_parent" android:layout_height="match_parent" android:clipChildren="false" android:clipToPadding="false" android:paddingTop="@dimen/list_edge_pad_v" android:paddingBottom="@dimen/list_edge_pad_v" android:paddingStart="@dimen/list_edge_pad_h" android:paddingEnd="@dimen/list_edge_pad_h" android:scrollbars="none"/>
+        <!-- Загрузка альбомов (прототип 05): спиннер «Загрузка…» по центру. -->
+        <LinearLayout android:id="@+id/albums_loading"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center" android:orientation="horizontal"
+            android:gravity="center_vertical" android:visibility="gone">
+            <ProgressBar
+                android:layout_width="@dimen/icon_size_small" android:layout_height="@dimen/icon_size_small"
+                android:indeterminate="true" android:indeterminateTint="@color/text_primary"/>
+            <TextView
+                style="@style/TextAppearance.TvSlideshow.Caption"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/medium_spacing"
+                android:text="@string/loading"/>
+        </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

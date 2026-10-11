@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Акцентная кнопка: залита tvOS-синим, фокус — белая рамка. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_enabled="false">
         <shape android:shape="rectangle">
@@ -8,21 +9,20 @@
     </item>
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/surface_pressed" />
-            <stroke android:width="@dimen/focus_stroke_width" android:color="@color/primary" />
+            <solid android:color="@color/primary_soft" />
             <corners android:radius="@dimen/corner_medium" />
         </shape>
     </item>
     <item android:state_focused="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/surface_focused" />
+            <solid android:color="@color/primary" />
             <stroke android:width="@dimen/focus_stroke_width" android:color="@color/focus_stroke" />
             <corners android:radius="@dimen/corner_medium" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/surface" />
+            <solid android:color="@color/primary" />
             <corners android:radius="@dimen/corner_medium" />
         </shape>
     </item>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Подложка диалога возобновления (прототип 06): surface-overlay #F528282A. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#F528282A" />
+    <corners android:radius="@dimen/corner_alert" />
+</shape>

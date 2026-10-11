@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Диалог «Продолжить просмотр?» (прототип 06). Фон окна AlertDialog
+    делается прозрачным в коде — подложку рисует osd_alert.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/alert_width" android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:background="@drawable/osd_alert"
+    android:padding="@dimen/alert_pad">
+
+    <TextView android:id="@+id/resume_title"
+        style="@style/TextAppearance.TvSlideshow.AlertTitle"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/resume_title"/>
+
+    <TextView android:id="@+id/resume_message"
+        style="@style/TextAppearance.TvSlideshow.Body"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/small_spacing"
+        android:gravity="center"
+        android:textColor="@color/text_secondary"
+        android:text="@string/resume_message"/>
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/large_spacing"
+        android:orientation="horizontal" android:gravity="center">
+
+        <Button android:id="@+id/btn_resume_continue"
+            style="@style/Widget.TvSlideshow.Button.Accent"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:minWidth="@dimen/alert_btn_min_w"
+            android:text="@string/resume_continue"/>
+
+        <Button android:id="@+id/btn_resume_start_over"
+            style="@style/Widget.TvSlideshow.Button"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/alert_actions_gap"
+            android:minWidth="@dimen/alert_btn_min_w"
+            android:text="@string/resume_start_over"/>
+    </LinearLayout>
+</LinearLayout>

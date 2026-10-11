@@ -2,15 +2,11 @@
 <resources>
     <!-- Общие -->
     <string name="app_name">Слайдшоу</string>
-    <string name="home_subtitle">Ваши фото на большом экране</string>
 
-    <!-- Главный экран -->
-    <string name="local_folder">Локальная папка</string>
-    <string name="local_folder_subtitle">Фотографии на устройстве</string>
+    <!-- Главный экран (плитки — только иконка и заголовок, без подписей) -->
+    <string name="local_folder">Локальный диск</string>
     <string name="yandex_disk">Яндекс Диск</string>
-    <string name="yandex_subtitle">Войти в аккаунт</string>
     <string name="settings">Настройки</string>
-    <string name="settings_subtitle">Параметры приложения</string>
     <string name="album_link">Альбом по ссылке</string>
     <string name="album_link_subtitle">Публичный альбом Яндекс.Диска</string>
     <string name="album_dialog_title">Ссылка на альбом</string>
@@ -40,7 +36,7 @@
     <string name="parent_folder">Вверх</string>
     <string name="empty_folder_title">В этой папке пока нет фотографий</string>
     <string name="empty_folder_message">Выберите другую папку или проверьте её содержимое.</string>
-    <string name="start_slideshow">Запустить слайдшоу</string>
+    <string name="start_slideshow">Смотреть слайдшоу</string>
     <string name="preview">Предпросмотр</string>
     <string name="loading">Загрузка…</string>
     <string name="error_generic">Не удалось загрузить данные</string>
@@ -59,14 +55,13 @@
     <string name="browser_select">Выбрать эту папку</string>
     <string name="storage_access_needed">Нужен доступ к файлам, чтобы выбрать папку</string>
     <string name="browser_select_root_hint">Сначала откройте диск и выберите папку</string>
-    <string name="badge_photo">ФОТО</string>
     <string name="badge_video">ВИДЕО</string>
     <string name="no_media_found">В выбранной папке нет фотографий или видео</string>
 
     <!-- Возобновление слайдшоу -->
-    <string name="resume_title">Слайдшоу</string>
-    <string name="resume_message">Прошлый показ не был завершён.</string>
-    <string name="resume_continue">Продолжить с последнего слайда</string>
+    <string name="resume_title">Продолжить просмотр?</string>
+    <string name="resume_message">Вы остановились на слайде %1$d из %2$d</string>
+    <string name="resume_continue">Продолжить</string>
     <string name="resume_start_over">С начала</string>
 
     <!-- Вход Яндекс.Диск -->
@@ -116,7 +111,7 @@
     <string name="setting_row_format">%1$s: %2$s</string>
 
     <!-- Настройки (значения и форматные строки, используются в коде) -->
-    <string name="choose_ken_burns">Ken Burns</string>
+    <string name="choose_ken_burns">Кен Бёрнс</string>
     <string name="choose_classic">Классика</string>
     <string name="setting_mode">Режим: %1$s</string>
     <string name="setting_order">Порядок: %1$s</string>
@@ -162,4 +157,38 @@
     <!-- Устаревшие строки (сохраняются для совместимости) -->
     <string name="choose_settings">Настройки</string>
     <string name="choose_yandex">Яндекс.Диск</string>
+
+    <!-- ===== Согласованный дизайн (DESIGN.md / design/prototypes) ===== -->
+
+    <!-- Экран выбора источника Яндекса (плитки — без подписей) -->
+    <string name="source_chooser_title">Выберите источник</string>
+    <string name="source_albums_title">Альбомы</string>
+    <string name="source_files_title">Файлы на диске</string>
+    <string name="source_public_title">Публичная ссылка на альбом</string>
+    <string name="link_label">Ссылка или ID публичного альбома</string>
+    <string name="link_placeholder">https://disk.yandex.ru/a/…</string>
+    <string name="link_example_a">Например: https://disk.yandex.ru/a/cNNwCu9VIXodbA</string>
+    <string name="link_example_b">ID — часть после /a/: cNNwCu9VIXodbA</string>
+
+    <!-- Логин -->
+    <string name="login_instruction_long">Отсканируйте QR-код или откройте ссылку на телефоне и введите код</string>
+
+    <!-- OSD слайдшоу -->
+    <string name="osd_hints">← → слайд · ↑ ↓ скорость · ОК — пауза · Назад — выход</string>
+    <string name="osd_speed_seconds">Скорость: %1$d сек</string>
+
+    <!-- Настройки: подписи согласованного экрана -->
+    <string name="settings_animation_label">Анимация</string>
+    <string name="settings_speed_label">Скорость слайда</string>
+    <string name="settings_loop_label">Зациклить</string>
+    <string name="settings_sort_label">Сортировка</string>
+    <string name="settings_filename_label">Имя файла на экране</string>
+    <string name="settings_autostart_label">Автозапуск последней папки</string>
+    <string name="sort_by_name">Имя</string>
+    <string name="sort_by_date">Дата изменения</string>
+
+    <!-- Браузер (прототип 04): метаданные папок и размер файлов -->
+    <string name="browser_meta_photos">%1$d фото</string>
+    <string name="browser_meta_videos">%1$d видео</string>
+    <string name="browser_meta_files">%1$d файлов</string>
 </resources>

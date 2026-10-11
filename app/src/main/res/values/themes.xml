@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Стили согласованного дизайна (DESIGN.md §2): тёмная тема Apple/tvOS,
+    фокус — белая рамка + масштаб, аккуратная типографика.
+-->
 <resources>
     <!-- AppCompatActivity требует тему AppCompat (не Leanback). -->
     <style name="Theme.TvSlideshow" parent="Theme.AppCompat.NoActionBar">
@@ -17,31 +21,70 @@
         <item name="buttonStyle">@style/Widget.TvSlideshow.Button</item>
     </style>
 
-    <!-- Кнопка: скруглённая «плитка» с фокус-подсветкой. -->
+    <!-- Базовый стиль семейства Widget.TvSlideshow.* (нужен для неявных родителей). -->
+    <style name="Widget.TvSlideshow" parent="Widget.AppCompat.Button" />
+
+    <!-- Кнопка: нейтральная «плитка» (прототип .btn), фокус — белая рамка. -->
     <style name="Widget.TvSlideshow.Button" parent="Widget.AppCompat.Button">
         <item name="android:background">@drawable/bg_tv_button</item>
         <!-- Отключаем перекраску AppCompat, иначе фокус-селектор теряет состояния. -->
         <item name="android:backgroundTint">@null</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textAllCaps">false</item>
-        <item name="android:minHeight">@dimen/menu_item_height</item>
-        <item name="android:padding">@dimen/menu_item_padding</item>
-        <item name="android:textSize">@dimen/text_menu</item>
+        <item name="android:minHeight">@dimen/tv_button_height</item>
+        <item name="android:paddingStart">@dimen/tv_button_pad_h</item>
+        <item name="android:paddingEnd">@dimen/tv_button_pad_h</item>
+        <item name="android:textSize">@dimen/text_body</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:focusable">true</item>
         <item name="android:stateListAnimator">@null</item>
         <item name="android:gravity">center</item>
     </style>
 
-    <!-- Строка списка/настроек. -->
+    <!-- Акцентная кнопка (залита tvOS-синим): «Продолжить», «Подключить». -->
+    <style name="Widget.TvSlideshow.Button.Accent">
+        <item name="android:background">@drawable/bg_tv_button_accent</item>
+    </style>
+
+    <!-- Строка списка/настроек: прозрачная, фокус — заливка surface + белая рамка. -->
     <style name="Widget.TvSlideshow.Row" parent="Widget.AppCompat.Button">
         <item name="android:background">@drawable/bg_tv_row</item>
         <item name="android:backgroundTint">@null</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:minHeight">@dimen/list_row_height</item>
-        <item name="android:padding">@dimen/menu_item_padding</item>
+        <item name="android:paddingStart">@dimen/browser_row_pad_h</item>
+        <item name="android:paddingEnd">@dimen/browser_row_pad_h</item>
         <item name="android:textSize">@dimen/text_body</item>
         <item name="android:focusable">true</item>
+        <item name="android:stateListAnimator">@animator/scale_on_focus</item>
+    </style>
+
+    <!-- Плитка (главная, источники): карточка с крупной иконкой. -->
+    <style name="Widget.TvSlideshow.Tile">
+        <item name="android:background">@drawable/bg_tile</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
+        <item name="android:stateListAnimator">@animator/scale_on_focus</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">@dimen/tile_padding</item>
+    </style>
+
+    <!-- Сегмент-контрол: трек + обычный/активный сегмент. -->
+    <style name="Widget.TvSlideshow.SegmentButton" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/bg_segment_item</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/text_caption</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:minHeight">0dp</item>
+        <item name="android:paddingStart">@dimen/seg_item_pad_h</item>
+        <item name="android:paddingEnd">@dimen/seg_item_pad_h</item>
+        <item name="android:paddingTop">@dimen/seg_item_pad_v</item>
+        <item name="android:paddingBottom">@dimen/seg_item_pad_v</item>
+        <item name="android:focusable">false</item>
+        <item name="android:clickable">false</item>
         <item name="android:stateListAnimator">@null</item>
     </style>
 
@@ -57,5 +100,30 @@
     <style name="TextAppearance.TvSlideshow.Caption" parent="TextAppearance.AppCompat">
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:textSize">@dimen/text_caption</item>
+    </style>
+    <style name="TextAppearance.TvSlideshow.TileTitle" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_menu</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.TvSlideshow.OsdCounter" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/osd_counter_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.TvSlideshow.GlassHud" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/hud_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <!-- Подсказки пульта в OSD: белые, как имя файла (правка ревью дизайна). -->
+    <style name="TextAppearance.TvSlideshow.OsdHints" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/text_caption</item>
+    </style>
+    <style name="TextAppearance.TvSlideshow.AlertTitle" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">@dimen/alert_title_text</item>
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>

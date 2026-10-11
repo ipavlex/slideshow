@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Иконка «Локальный диск» (прототип 01): стек из двух полок, контур. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/tile_icon" android:height="@dimen/tile_icon"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:pathData="M5,4h14a2,2 0 0 1 2,2v3a2,2 0 0 1 -2,2H5a2,2 0 0 1 -2,-2V6a2,2 0 0 1 2,-2z"
+        android:strokeColor="@color/text_primary" android:strokeWidth="1.4"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M5,13h14a2,2 0 0 1 2,2v3a2,2 0 0 1 -2,2H5a2,2 0 0 1 -2,-2v-3a2,2 0 0 1 2,-2z"
+        android:strokeColor="@color/text_primary" android:strokeWidth="1.4"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M7,6.9a0.6,0.6 0 1,0 0.001,0Z"
+        android:fillColor="@color/text_primary"/>
+    <path
+        android:pathData="M7,15.9a0.6,0.6 0 1,0 0.001,0Z"
+        android:fillColor="@color/text_primary"/>
+</vector>

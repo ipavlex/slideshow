@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Градиентная подложка снизу экрана слайдшоу для читаемости OSD. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient android:angle="270" android:startColor="#00000000" android:endColor="#B3000000" />
+</shape>

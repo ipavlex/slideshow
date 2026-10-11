@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Иконка «Настройки» (прототип 01): солнце-шестерня — круг с лучами, контур. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="@dimen/icon_size_large" android:height="@dimen/icon_size_large"
+    android:width="@dimen/tile_icon" android:height="@dimen/tile_icon"
     android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="@color/text_primary" android:pathData="M19.14 12.94a7.5 7.5 0 0 0 0-1.88l2.03-1.58-2-3.46-2.39.96a7.4 7.4 0 0 0-1.63-.94L14.8 3h-4l-.36 3.04a7.4 7.4 0 0 0-1.63.94l-2.39-.96-2 3.46 2.03 1.58a7.5 7.5 0 0 0 0 1.88l-2.03 1.58 2 3.46 2.39-.96c.5.39 1.05.7 1.63.94L10.8 21h4l.36-3.04c.58-.24 1.13-.55 1.63-.94l2.39.96 2-3.46-2.04-1.58zM12.8 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" />
+    <path
+        android:pathData="M12,8.8a3.2,3.2 0 1,0 0,6.4a3.2,3.2 0 1,0 0,-6.4Z"
+        android:strokeColor="@color/text_primary" android:strokeWidth="1.4"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M12,2.8v3M12,18.2v3M2.8,12h3M18.2,12h3M5.5,5.5l2.1,2.1M16.4,16.4l2.1,2.1M18.5,5.5l-2.1,2.1M7.6,16.4l-2.1,2.1"
+        android:strokeColor="@color/text_primary" android:strokeWidth="1.4"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
 </vector>

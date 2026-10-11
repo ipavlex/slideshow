@@ -5,88 +5,63 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
-import com.pzarubin.tvslideshow.playback.Thumbnails
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 
-/** Карточка в сетке браузера (иконка или миниатюра + название + подпись). */
+/**
+ * Карточка браузера/хаба: общие данные для плиток хаба ([GridCardAdapter])
+ * и строк списка ([BrowserListAdapter]).
+ */
 data class GridCard(
     val label: String,
     val iconRes: Int,
     val nameColorRes: Int = R.color.text_primary,
     val subtitle: String? = null,
     val thumbFile: File? = null,
-    val thumbIsVideo: Boolean = false
+    val thumbIsVideo: Boolean = false,
+    /** Строка — папка: кликабельна; медиа-файл — нет (ревью дизайна). */
+    val isDir: Boolean = false
 )
 
-/** Адаптер сетки карточек для браузеров папок. Миниатюры грузит асинхронно. */
+/**
+ * Адаптер плиток (главная, хаб Яндекса — прототипы 01/02): горизонтальный ряд
+ * плиток [R.layout.item_tile] — крупная иконка и название (без подписи,
+ * ревью дизайна). Данные — те же [GridCard], что и в браузере папок.
+ */
 class GridCardAdapter(
-    private val scope: CoroutineScope,
     private val cards: List<GridCard>,
     private val onClick: (Int) -> Unit
 ) : RecyclerView.Adapter<GridCardAdapter.Holder>() {
 
     class Holder(view: View) : RecyclerView.ViewHolder(view) {
-        val thumb: ImageView = view.findViewById(R.id.browser_thumbnail)
-        val name: TextView = view.findViewById(R.id.name)
-        val subtitle: TextView = view.findViewById(R.id.browser_subtitle)
+        val icon: ImageView = view.findViewById(R.id.tile_icon)
+        val title: TextView = view.findViewById(R.id.tile_title)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_browser, parent, false)
+            .inflate(R.layout.item_tile, parent, false)
         return Holder(view)
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         val card = cards[position]
-        holder.name.text = card.label
-        holder.name.setTextColor(ContextCompat.getColor(holder.itemView.context, card.nameColorRes))
-        if (card.subtitle != null) {
-            holder.subtitle.visibility = View.VISIBLE
-            holder.subtitle.text = card.subtitle
-        } else {
-            holder.subtitle.visibility = View.GONE
-        }
+        holder.icon.setImageResource(card.iconRes)
+        holder.icon.contentDescription = card.label
+        holder.title.text = card.label
         holder.itemView.setOnClickListener { onClick(position) }
+        // Иконка белеет, когда плитка в фокусе (ревью дизайна).
+        TileTint.bind(holder.itemView, holder.icon)
 
-        val file = card.thumbFile
-        if (file != null) {
-            holder.thumb.contentDescription = card.label
-            loadThumbnail(holder, card, file)
-        } else {
-            holder.thumb.contentDescription = null
-            holder.thumb.tag = null
-            holder.thumb.scaleType = ImageView.ScaleType.FIT_CENTER
-            holder.thumb.setImageResource(card.iconRes)
-        }
+        // Зазор между плитками; у последней — без зазора, чтобы ряд
+        // оставался по центру экрана. Переприсваиваем params — иначе
+        // изменение при переиспользовании холдера не применится.
+        val params = holder.itemView.layoutParams as ViewGroup.MarginLayoutParams
+        val gap = holder.itemView.resources.getDimensionPixelSize(R.dimen.tile_gap)
+        params.rightMargin = if (position == cards.size - 1) 0 else gap
+        holder.itemView.layoutParams = params
     }
 
     override fun getItemCount() = cards.size
-
-    private fun loadThumbnail(holder: Holder, card: GridCard, file: File) {
-        val key = file.absolutePath
-        holder.thumb.tag = key
-        holder.thumb.scaleType = ImageView.ScaleType.CENTER_CROP
-        holder.thumb.setImageResource(R.drawable.ic_photo)
-
-        scope.launch(Dispatchers.IO) {
-            val bmp = if (card.thumbIsVideo) Thumbnails.video(file) else Thumbnails.image(file)
-            withContext(Dispatchers.Main) {
-                if (holder.thumb.tag == key) {
-                    if (bmp != null) {
-                        holder.thumb.setImageBitmap(bmp)
-                    } else {
-                        holder.thumb.setImageResource(card.iconRes)
-                    }
-                }
-            }
-        }
-    }
 }

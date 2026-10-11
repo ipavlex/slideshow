@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>06 · Продолжить просмотр?</title>
+<link rel="stylesheet" href="../css/tv.css">
+<style>
+  .watch-btn { margin-top: 28px; align-self: flex-start; }
+</style>
+</head>
+<body>
+<main class="screen">
+  <!-- Затемнённый фон — браузер -->
+  <div class="breadcrumb">Внутренняя память · DCIM</div>
+  <h1 class="screen-title">Camera 2024</h1>
+
+  <button class="btn watch-btn">Смотреть слайдшоу</button>
+
+  <div class="rows">
+    <div class="list-row">
+      <div class="thumb thumb-folder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+        </svg>
+      </div>
+      <div class="name">Отпуск в Сочи</div>
+      <div class="meta">12 фото · 3 видео</div>
+    </div>
+    <div class="list-row">
+      <div class="thumb g1"></div>
+      <div class="name">IMG_4029.jpg</div>
+      <div class="meta">3,2 МБ</div>
+    </div>
+    <div class="list-row">
+      <div class="thumb g2"></div>
+      <div class="name">IMG_4030.jpg</div>
+      <div class="meta">2,8 МБ</div>
+    </div>
+    <div class="list-row">
+      <div class="thumb g3"></div>
+      <div class="name">IMG_4031.jpg</div>
+      <div class="meta">4,1 МБ</div>
+    </div>
+  </div>
+</main>
+
+<!-- Модальный алерт -->
+<div class="backdrop" data-modal-open="true">
+  <div class="alert" role="dialog" aria-modal="true">
+    <h2>Продолжить просмотр?</h2>
+    <p>Вы остановились на слайде 3 из 123</p>
+    <div class="actions">
+      <button class="btn btn-accent" data-focusable data-focus-default id="btnLast">Продолжить</button>
+      <button class="btn btn-ghost" data-focusable id="btnFirst">С начала</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/tv.js"></script>
+<script>
+  document.getElementById('btnLast').addEventListener('click', function () {
+    location.href = '08-slideshow.html';
+  });
+  document.getElementById('btnFirst').addEventListener('click', function () {
+    location.href = '08-slideshow.html';
+  });
+</script>
+</body>
+</html>

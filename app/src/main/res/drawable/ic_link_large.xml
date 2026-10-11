@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Иконка «Публичная ссылка» (прототип 02): звено цепи, контур. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/tile_icon" android:height="@dimen/tile_icon"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:pathData="M10,14a5,5 0 0 0 7.1,0l2.4,-2.4a5,5 0 0 0 -7.1,-7.1L11,5.9"
+        android:strokeColor="@color/text_primary" android:strokeWidth="1.4"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+    <path
+        android:pathData="M14,10a5,5 0 0 0 -7.1,0l-2.4,2.4a5,5 0 0 0 7.1,7.1L13,18.1"
+        android:strokeColor="@color/text_primary" android:strokeWidth="1.4"
+        android:strokeLineCap="round" android:strokeLineJoin="round"/>
+</vector>

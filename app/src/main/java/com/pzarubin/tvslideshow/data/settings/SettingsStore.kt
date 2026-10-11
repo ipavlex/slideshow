@@ -41,6 +41,24 @@ class SettingsStore(context: Context) {
         get() = prefs.getBoolean("recursive", false)
         set(v) = prefs.edit().putBoolean("recursive", v).apply()
 
+    /**
+     * Цикл плейлиста: после последнего слайда показ начинается сначала.
+     * Если выключен — показ останавливается на последнем слайде.
+     * Применяется в SlideshowEngine.loop (читается SlideshowActivity).
+     */
+    var loop: Boolean
+        get() = prefs.getBoolean("loop", true)
+        set(v) = prefs.edit().putBoolean("loop", v).apply()
+
+    /**
+     * Автозапуск слайдшоу из последней открытой папки при старте приложения.
+     * Флаг читается MainActivity при запуске (подключение запуска — на оркестраторе);
+     * путь последней папки лежит в ResumeStore.
+     */
+    var autostart: Boolean
+        get() = prefs.getBoolean("autostart", false)
+        set(v) = prefs.edit().putBoolean("autostart", v).apply()
+
     /** Показывать OSD-плашку (название файла, счётчик и пр.) поверх слайдшоу. */
     var showOsd: Boolean
         get() = prefs.getBoolean("show_osd", true)

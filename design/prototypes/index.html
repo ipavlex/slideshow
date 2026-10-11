@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Слайдшоу · Прототипы интерфейса</title>
+<link rel="stylesheet" href="css/tv.css">
+<style>
+  .head-note {
+    margin-top: 20px;
+    font-size: 26px;
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+</style>
+</head>
+<body>
+<main class="screen">
+  <h1 class="screen-title">Слайдшоу · Прототипы</h1>
+  <div class="head-note">
+    <span><span class="keycap">Стрелки</span> навигация</span>
+    <span><span class="keycap">Enter</span> ОК</span>
+    <span><span class="keycap">Backspace</span> назад</span>
+  </div>
+
+  <div class="proto-grid">
+    <a class="proto-card" href="screens/01-home.html" data-focusable data-focus-default>
+      <div class="num">01</div>
+      <div class="ttl">Главная</div>
+      <div class="dsc">Локальный диск, Яндекс Диск, настройки</div>
+    </a>
+    <a class="proto-card" href="screens/02-yandex.html" data-focusable>
+      <div class="num">02</div>
+      <div class="ttl">Яндекс Диск</div>
+      <div class="dsc">Альбомы, файлы, публичная ссылка</div>
+    </a>
+    <a class="proto-card" href="screens/03-yandex-login.html" data-focusable>
+      <div class="num">03</div>
+      <div class="ttl">Логин</div>
+      <div class="dsc">QR-код и код подтверждения</div>
+    </a>
+    <a class="proto-card" href="screens/04-browser.html" data-focusable>
+      <div class="num">04</div>
+      <div class="ttl">Браузер</div>
+      <div class="dsc">Папки и файлы с превью</div>
+    </a>
+    <a class="proto-card" href="screens/05-browser-loading.html" data-focusable>
+      <div class="num">05</div>
+      <div class="ttl">Загрузка</div>
+      <div class="dsc">Состояние загрузки из сети</div>
+    </a>
+    <a class="proto-card" href="screens/06-continue.html" data-focusable>
+      <div class="num">06</div>
+      <div class="ttl">Продолжить?</div>
+      <div class="dsc">Диалог «с последнего / с начала»</div>
+    </a>
+    <a class="proto-card" href="screens/07-settings.html" data-focusable>
+      <div class="num">07</div>
+      <div class="ttl">Настройки</div>
+      <div class="dsc">Анимация, скорость, порядок</div>
+    </a>
+    <a class="proto-card" href="screens/08-slideshow.html" data-focusable>
+      <div class="num">08</div>
+      <div class="ttl">Слайдшоу</div>
+      <div class="dsc">Воспроизведение, пауза, скорость</div>
+    </a>
+  </div>
+
+  <div class="hints">
+    <span>Клавиатура имитирует пульт</span>
+    <span>Esc в слайдшоу — выход</span>
+  </div>
+</main>
+<script src="js/tv.js"></script>
+</body>
+</html>

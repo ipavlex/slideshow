@@ -32,6 +32,15 @@ class SlideshowEngine(
     var speedMultiplier = 1f
         private set
 
+    /**
+     * Цикл плейлиста (настройка «Зациклить»); по умолчанию true — прежнее
+     * поведение показа по кругу. loop=false останавливает только автопереход
+     * по краю плейлиста (таймер/конец видео); ручные ←/→ всегда циклятся,
+     * как в прототипе 08.
+     * Присваивается активностью при старте: engine.loop = settings.loop.
+     */
+    var loop = true
+
     private var index = 0
     private var tickJob: Job? = null
     private var tickStartedAt = 0L
@@ -78,9 +87,9 @@ class SlideshowEngine(
         if (state == State.PLAYING) pause() else resume()
     }
 
-    fun next() = moveBy(1)
+    fun next() = moveBy(1, manual = true)
 
-    fun previous() = moveBy(-1)
+    fun previous() = moveBy(-1, manual = true)
 
     fun speedUp() = stepSpeed(+1)
 
@@ -93,7 +102,7 @@ class SlideshowEngine(
     fun notifyCurrentFinished() {
         if (state != State.PLAYING) return
         if (currentItem.kind != MediaItem.Kind.VIDEO) return
-        moveBy(1)
+        moveBy(1, manual = false)
     }
 
     /**
@@ -119,9 +128,24 @@ class SlideshowEngine(
         tickJob = null
     }
 
-    private fun moveBy(delta: Int) {
+    /**
+     * Переход на [delta] слайдов. [manual] = true — ручная навигация ←/→:
+     * всегда циклится по плейлисту, даже при loop=false (как в прототипе 08).
+     * [manual] = false — автопереход (таймер фото/конец видео): при loop=false
+     * останавливается на краю плейлиста.
+     */
+    private fun moveBy(delta: Int, manual: Boolean) {
         if (items.isEmpty()) return
-        index = (index + delta + items.size) % items.size
+        val next = index + delta
+        if (!loop && !manual && next !in items.indices) {
+            // Без цикла: только автопереход останавливается на краю — гасим
+            // таймер и ставим показ на паузу; ручные ←/→ сюда не попадают.
+            tickJob?.cancel()
+            tickJob = null
+            if (state == State.PLAYING) setState(State.PAUSED)
+            return
+        }
+        index = (next + items.size) % items.size
         onSlide?.invoke(currentItem)
         // Фото: таймер стартует после показа (notifyPhotoShown); видео: ждём завершения.
         if (state == State.PLAYING && currentItem.kind == MediaItem.Kind.VIDEO) scheduleNext()
@@ -141,7 +165,7 @@ class SlideshowEngine(
         tickStartedAt = android.os.SystemClock.elapsedRealtime()
         tickJob = scope.launch {
             delay(delayMs)
-            moveBy(1)
+            moveBy(1, manual = false)
         }
     }
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ручка тумблера (прототип 07: круг 40px = 20dp с отступом 4px = 2dp от края
+    трека 84×48px = 42×24dp). Inset даёт видимый круг 20dp при внутренней
+    ширине 24dp — Switch сдвигает ручку ровно на 18dp, как в макете.
+-->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/toggle_thumb_knob"
+    android:insetLeft="2dp" android:insetTop="2dp"
+    android:insetRight="2dp" android:insetBottom="2dp"/>

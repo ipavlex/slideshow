@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>08 · Слайдшоу</title>
+<link rel="stylesheet" href="../css/tv.css">
+<style>
+  body { background: #000; }
+
+  .slides { position: fixed; inset: 0; }
+  .slide {
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  .slide.active { opacity: 1; }
+
+  /* Сцены-заглушки */
+  .s1 { /* Закат в горах */
+    background:
+      radial-gradient(circle at 68% 58%, rgba(255, 205, 130, 0.95) 0%, rgba(255, 205, 130, 0) 14%),
+      linear-gradient(180deg, #2b1055 0%, #6f5ba8 34%, #e98a5e 62%, #401a33 100%);
+  }
+  .s2 { /* Ночная улица */
+    background:
+      radial-gradient(circle at 24% 30%, rgba(90, 140, 255, 0.4) 0%, rgba(90, 140, 255, 0) 9%),
+      radial-gradient(circle at 72% 58%, rgba(255, 120, 90, 0.32) 0%, rgba(255, 120, 90, 0) 8%),
+      radial-gradient(circle at 50% 75%, rgba(120, 220, 255, 0.22) 0%, rgba(120, 220, 255, 0) 7%),
+      linear-gradient(180deg, #05070f 0%, #101a33 55%, #05070f 100%);
+  }
+  .s3 { /* Море */
+    background:
+      radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 45%),
+      radial-gradient(circle at 75% 20%, rgba(255, 240, 200, 0.5) 0%, rgba(255, 240, 200, 0) 12%),
+      linear-gradient(180deg, #8fd3f4 0%, #4aa3c7 48%, #0b3954 100%);
+  }
+
+  /* Оверлей: только информация, кнопок нет — всё управление с пульта */
+  .ss-top {
+    position: fixed;
+    top: 64px; left: 96px;
+    font-size: 26px;
+    color: var(--text-2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+    z-index: 10;
+  }
+
+  .ss-hud {
+    position: fixed;
+    left: 96px; right: 96px; bottom: 64px;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease;
+  }
+
+  .ss-top.show, .ss-hud.show { opacity: 1; visibility: visible; }
+
+  .ss-progress {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.22);
+    overflow: hidden;
+    margin-bottom: 36px;
+  }
+  .ss-progress > div {
+    height: 100%;
+    width: 0;
+    background: #fff;
+    border-radius: 3px;
+    transition: width .4s ease;
+  }
+
+  .ss-info {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+  }
+  .ss-file { display: flex; align-items: center; gap: 20px; font-size: 30px; padding-bottom: 6px; }
+  .badge {
+    font-size: 22px;
+    font-weight: 600;
+    color: #000;
+    background: #fff;
+    border-radius: 9px;
+    padding: 6px 18px;
+  }
+  .ss-right { text-align: right; }
+  .ss-counter { font-size: 54px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .ss-speed-line { font-size: 24px; color: var(--text-2); margin-top: 8px; }
+
+  .ss-hints {
+    margin-top: 44px;
+    text-align: center;
+    font-size: 22px;
+    color: var(--text-3);
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+  }
+  .ss-hints b { color: var(--text-2); font-weight: 600; }
+
+  /* HUD скорости по центру — полупрозрачная плашка */
+  .ss-speed-hud {
+    position: fixed;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%) scale(0.96);
+    background: rgba(44, 44, 46, 0.30);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 40px 72px;
+    font-size: 52px;
+    font-weight: 600;
+    z-index: 20;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .ss-speed-hud.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+  }
+</style>
+</head>
+<body>
+  <div class="slides">
+    <div class="slide s1 active"></div>
+    <div class="slide s2"></div>
+    <div class="slide s3"></div>
+  </div>
+
+  <div class="ss-top" id="ssTop">DCIM · Camera 2024</div>
+
+  <div class="ss-hud" id="ssHud">
+    <div class="ss-progress"><div id="ssBar" style="width:2.4%"></div></div>
+    <div class="ss-info">
+      <div class="ss-file">
+        <span id="ssName">IMG_4032.jpg</span>
+        <span class="badge" id="ssPauseBadge" hidden>Пауза</span>
+      </div>
+      <div class="ss-right">
+        <div class="ss-counter" id="ssCounter">3 / 123</div>
+        <div class="ss-speed-line" id="ssSpeedLabel">Скорость: 10 сек</div>
+      </div>
+    </div>
+    <div class="ss-hints"><b>← →</b> слайд · <b>↑ ↓</b> скорость · <b>ОК</b> пауза · <b>Назад</b> выход</div>
+  </div>
+
+  <div class="ss-speed-hud" id="ssSpeedHud">Скорость: 10 сек</div>
+
+<script src="../js/tv.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var SPEEDS = [5, 10, 15, 20, 30];
+  var speedIdx = 1; // 10 сек
+  var paused = false;
+  var overlayVisible = false;
+
+  // Слайды-заглушки; нумерация внутри «папки из 123»
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide')).map(function (el, i) {
+    return { el: el, num: 3 + i, file: ['IMG_4032.jpg', 'VID_20240712_183445.mp4', 'IMG_4033.jpg'][i] };
+  });
+  var cur = 0;
+  var timer = null;
+
+  var hud = document.getElementById('ssHud');
+  var topBar = document.getElementById('ssTop');
+  var nameEl = document.getElementById('ssName');
+  var counterEl = document.getElementById('ssCounter');
+  var barEl = document.getElementById('ssBar');
+  var pauseBadge = document.getElementById('ssPauseBadge');
+  var speedLabel = document.getElementById('ssSpeedLabel');
+  var speedHud = document.getElementById('ssSpeedHud');
+
+  function render() {
+    slides.forEach(function (s, i) { s.el.classList.toggle('active', i === cur); });
+    var s = slides[cur];
+    nameEl.textContent = s.file;
+    counterEl.textContent = s.num + ' / 123';
+    barEl.style.width = (s.num / 123 * 100).toFixed(1) + '%';
+  }
+
+  function restartTimer() {
+    clearInterval(timer);
+    if (!paused) {
+      timer = setInterval(function () { go(1); }, SPEEDS[speedIdx] * 1000);
+    }
+  }
+
+  function go(dir) {
+    cur = (cur + dir + slides.length) % slides.length;
+    render();
+    restartTimer();
+  }
+
+  function setPaused(p) {
+    paused = p;
+    pauseBadge.hidden = !p;
+    restartTimer();
+    showOverlay();
+  }
+
+  /* ---- Оверлей ---- */
+
+  var idleTimer = null;
+
+  function showOverlay() {
+    overlayVisible = true;
+    hud.classList.add('show');
+    topBar.classList.add('show');
+    clearTimeout(idleTimer);
+    if (!paused) resetIdle();
+  }
+
+  function hideOverlay() {
+    overlayVisible = false;
+    hud.classList.remove('show');
+    topBar.classList.remove('show');
+    clearTimeout(idleTimer);
+  }
+
+  function resetIdle() {
+    clearTimeout(idleTimer);
+    if (!paused) {
+      idleTimer = setTimeout(hideOverlay, 3000);
+    }
+  }
+
+  /* ---- HUD скорости ---- */
+
+  var speedHudTimer = null;
+
+  function showSpeedHud() {
+    var text = 'Скорость: ' + SPEEDS[speedIdx] + ' сек';
+    speedHud.textContent = text;
+    speedLabel.textContent = text;
+    speedHud.classList.add('show');
+    clearTimeout(speedHudTimer);
+    speedHudTimer = setTimeout(function () { speedHud.classList.remove('show'); }, 1500);
+  }
+
+  // ↑ — быстрее, ↓ — медленнее
+  function changeSpeed(dir) {
+    speedIdx = Math.min(SPEEDS.length - 1, Math.max(0, speedIdx + dir));
+    showSpeedHud();
+    restartTimer();
+    resetIdle();
+  }
+
+  /* ---- Клавиатура = пульт. Кнопок на экране нет ---- */
+
+  window.tvKeyIntercept = function (e) {
+    var k = e.key;
+
+    if (k === 'Escape' || k === 'Backspace') { location.href = '04-browser.html'; return true; }
+
+    // Скорость: ↑ быстрее, ↓ медленнее (−/+ как дублирование)
+    if (k === 'ArrowUp' || k === '+' || k === '=') {
+      if (!overlayVisible) showOverlay();
+      changeSpeed(-1);
+      e.preventDefault();
+      return true;
+    }
+    if (k === 'ArrowDown' || k === '-' || k === '_') {
+      if (!overlayVisible) showOverlay();
+      changeSpeed(1);
+      e.preventDefault();
+      return true;
+    }
+
+    // Пауза: ОК (Enter) или пробел
+    if (k === 'Enter' || k === ' ') {
+      setPaused(!paused);
+      e.preventDefault();
+      return true;
+    }
+
+    // ← → переключение слайдов
+    if (k === 'ArrowRight') {
+      if (!overlayVisible) showOverlay();
+      go(1);
+      e.preventDefault();
+      return true;
+    }
+    if (k === 'ArrowLeft') {
+      if (!overlayVisible) showOverlay();
+      go(-1);
+      e.preventDefault();
+      return true;
+    }
+
+    // Остальные клавиши только показывают оверлей
+    if (!overlayVisible) showOverlay();
+    resetIdle();
+    return true;
+  };
+
+  // Клик мышью/тап — показать оверлей
+  document.querySelector('.slides').addEventListener('click', showOverlay);
+
+  render();
+  restartTimer();
+})();
+</script>
+</body>
+</html>

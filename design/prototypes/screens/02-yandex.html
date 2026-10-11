@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>02 · Яндекс Диск — источники</title>
+<link rel="stylesheet" href="../css/tv.css">
+<style>
+  /* Панель ввода ссылки/ID альбома */
+  #linkPanel { display: none; max-width: 1240px; margin: 56px auto 0; width: 100%; }
+  #linkPanel.open { display: block; }
+  .link-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 56px;
+  }
+  .link-label { font-size: 26px; color: var(--text-2); margin-bottom: 24px; }
+  .link-input {
+    width: 100%;
+    background: var(--surface-2);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--text);
+    font-size: 30px;
+    font-family: "SF Mono", ui-monospace, Menlo, monospace;
+    letter-spacing: 1px;
+    padding: 26px 32px;
+    outline: none;
+  }
+  .link-input:focus { border-color: var(--accent); }
+  .link-example { font-size: 22px; color: var(--text-3); margin-top: 20px; line-height: 1.5; }
+  .link-example b { color: var(--text-2); font-weight: 600; }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="breadcrumb">Яндекс Диск</div>
+  <h1 class="screen-title">Выберите источник</h1>
+
+  <div class="home-shelf" id="sourceTiles">
+    <div class="home-card" data-focusable data-focus-default role="button" data-target="03-yandex-login.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="7" width="14" height="14" rx="2.5"/>
+        <path d="M7 7V5.5A2.5 2.5 0 0 1 9.5 3H18.5A2.5 2.5 0 0 1 21 5.5v9a2.5 2.5 0 0 1-2.5 2.5H17"/>
+        <path d="M3 15.5 7.5 12l4 3.5 3-2.5 2.5 2"/>
+        <circle cx="8.5" cy="11" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+      <div class="hc-title">Альбомы</div>
+      <div class="hc-sub">Виртуальные подборки</div>
+    </div>
+
+    <div class="home-card" data-focusable role="button" data-target="03-yandex-login.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>
+      </svg>
+      <div class="hc-title">Файлы на диске</div>
+      <div class="hc-sub">Папки как на компьютере</div>
+    </div>
+
+    <div class="home-card" data-focusable role="button" id="tilePublicLink">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10 14a5 5 0 0 0 7.1 0l2.4-2.4a5 5 0 0 0-7.1-7.1L11 5.9"/>
+        <path d="M14 10a5 5 0 0 0-7.1 0l-2.4 2.4a5 5 0 0 0 7.1 7.1L13 18.1"/>
+      </svg>
+      <div class="hc-title">Публичная ссылка на альбом</div>
+      <div class="hc-sub">Ввести код альбома</div>
+    </div>
+  </div>
+
+  <div id="linkPanel">
+    <div class="link-card">
+      <div class="link-label">Ссылка или ID публичного альбома</div>
+      <input class="link-input" id="linkInput" type="text" placeholder="https://disk.yandex.ru/a/…" autocomplete="off" spellcheck="false">
+      <div class="link-example">
+        Например: https://disk.yandex.ru/a/cNNwCu9VIXodbA<br>
+        ID — часть после <b>/a/</b>: <b>cNNwCu9VIXodbA</b>
+      </div>
+    </div>
+  </div>
+
+  <div class="hints" id="hintsList">
+    <span><span class="keycap">ОК</span> выбрать</span>
+    <span><span class="keycap">Назад</span> назад</span>
+  </div>
+  <div class="hints" id="hintsLink" hidden>
+    <span><span class="keycap">ОК</span> подключить</span>
+    <span><span class="keycap">Назад</span> отмена</span>
+  </div>
+</main>
+
+<script src="../js/tv.js"></script>
+<script>
+(function () {
+  var tiles = document.getElementById('sourceTiles');
+  var panel = document.getElementById('linkPanel');
+  var input = document.getElementById('linkInput');
+  var hintsList = document.getElementById('hintsList');
+  var hintsLink = document.getElementById('hintsLink');
+  var tilePublic = document.getElementById('tilePublicLink');
+
+  function openPanel() {
+    tiles.style.display = 'none';
+    panel.classList.add('open');
+    panel.setAttribute('data-modal-open', 'true');
+    hintsList.hidden = true;
+    hintsLink.hidden = false;
+    setTimeout(function () { input.focus(); }, 0);
+  }
+
+  function closePanel() {
+    panel.classList.remove('open');
+    panel.removeAttribute('data-modal-open');
+    tiles.style.display = '';
+    hintsList.hidden = false;
+    hintsLink.hidden = true;
+    window.TV.focusEl(tilePublic);
+  }
+
+  tilePublic.addEventListener('click', openPanel);
+
+  // Без кнопок: ОК (Enter) — подключить, Назад на пустом поле — отмена
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      location.href = '03-yandex-login.html';
+    } else if (e.key === 'Backspace' && input.value === '') {
+      e.preventDefault();
+      closePanel();
+    }
+  });
+
+  // Плитки: первый вход — страница логина
+  document.querySelectorAll('#sourceTiles .home-card').forEach(function (tile) {
+    if (tile === tilePublic) return;
+    tile.addEventListener('click', function () {
+      location.href = tile.dataset.target;
+    });
+  });
+})();
+</script>
+</body>
+</html>

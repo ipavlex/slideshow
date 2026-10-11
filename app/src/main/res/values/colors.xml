@@ -1,17 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Палитра согласованного дизайна (DESIGN.md, design/prototypes).
+    Стиль: минималистичный Apple/tvOS, тёмная тема, акцент tvOS-синий.
+-->
 <resources>
-    <color name="background">#FF0B0E14</color>
-    <color name="surface">#FF172232</color>
-    <color name="surface_focused">#FF203F67</color>
-    <color name="surface_pressed">#FF142B46</color>
-    <color name="primary">#FF3D9BFF</color>
-    <color name="primary_soft">#FF254D7A</color>
-    <color name="focus_stroke">#FF4AA3FF</color>
-    <color name="text_primary">#FFF4F7FC</color>
-    <color name="text_secondary">#FFB0BED2</color>
-    <color name="text_disabled">#FF68778D</color>
-    <color name="divider">#FF2B394B</color>
-    <color name="scrim">#B8000000</color>
-    <color name="success">#FF75D6A2</color>
+    <color name="background">#FF000000</color>
+    <color name="surface">#FF1C1C1E</color>
+    <color name="surface_elevated">#FF2C2C2E</color>
+    <color name="surface_focused">#FF2C2C2E</color>
+    <color name="surface_pressed">#FF3A3A3C</color>
+    <color name="primary">#FF0A84FF</color>
+    <color name="primary_soft">#FF339DFF</color>
+    <color name="focus_stroke">#FFFFFFFF</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FF8E8E93</color>
+    <color name="text_disabled">#FF5A5A5E</color>
+    <!-- Крупные иконки плиток (прототип: text-2 rgba(235,235,245,0.60)) -->
+    <color name="icon_secondary">#99EBEBF5</color>
+    <!-- Иконка плитки в покое: вид icon_secondary (#99EBEBF5) над surface. -->
+    <color name="tile_icon_idle">#98989F</color>
+    <color name="divider">#14FFFFFF</color>
+    <color name="scrim">#B3000000</color>
+    <!-- Полупрозрачное «стекло» поверх фото: HUD скорости -->
+    <color name="glass">#4D2C2C2E</color>
+    <color name="success">#FF30D158</color>
     <color name="warning">#FFFFC266</color>
+    <!-- Трек переключателя в положении OFF -->
+    <color name="toggle_off">#29FFFFFF</color>
 </resources>

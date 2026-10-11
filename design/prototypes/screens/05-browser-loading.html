@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>05 · Браузер — загрузка</title>
+<link rel="stylesheet" href="../css/tv.css">
+<style>
+  .watch-btn { margin-top: 28px; align-self: flex-start; }
+  .loading-note {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin: 40px auto 0;
+    font-size: 26px;
+    color: var(--text-2);
+  }
+</style>
+</head>
+<body>
+<main class="screen">
+  <div class="breadcrumb">Яндекс Диск · Фотографии</div>
+  <h1 class="screen-title">Camera 2024</h1>
+
+  <button class="btn watch-btn" aria-disabled="true">Смотреть слайдшоу</button>
+
+  <div class="rows">
+    <div class="skel-row"><div class="sk-thumb shimmer"></div><div class="sk-lines"><div class="sk-line shimmer w60"></div><div class="sk-line shimmer w35"></div></div></div>
+    <div class="skel-row"><div class="sk-thumb shimmer"></div><div class="sk-lines"><div class="sk-line shimmer w60"></div><div class="sk-line shimmer w35"></div></div></div>
+    <div class="skel-row"><div class="sk-thumb shimmer"></div><div class="sk-lines"><div class="sk-line shimmer w60"></div><div class="sk-line shimmer w35"></div></div></div>
+    <div class="skel-row"><div class="sk-thumb shimmer"></div><div class="sk-lines"><div class="sk-line shimmer w60"></div><div class="sk-line shimmer w35"></div></div></div>
+    <div class="skel-row"><div class="sk-thumb shimmer"></div><div class="sk-lines"><div class="sk-line shimmer w60"></div><div class="sk-line shimmer w35"></div></div></div>
+  </div>
+
+  <div class="loading-note">
+    <div class="spinner"></div>
+    <span>Загрузка…</span>
+  </div>
+
+  <div class="hints">
+    <span><span class="keycap">Назад</span> назад</span>
+  </div>
+</main>
+
+<script src="../js/tv.js"></script>
+</body>
+</html>

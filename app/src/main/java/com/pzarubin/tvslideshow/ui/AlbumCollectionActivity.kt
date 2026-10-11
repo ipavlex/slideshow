@@ -3,6 +3,7 @@ package com.pzarubin.tvslideshow.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -16,14 +17,16 @@ import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
 import com.pzarubin.tvslideshow.data.source.YandexClient
 import com.pzarubin.tvslideshow.data.source.YandexPublicAlbum
+import com.pzarubin.tvslideshow.playback.Thumbnails
 import kotlinx.coroutines.launch
 
 /**
  * Коллекция альбомов: сканирует папку на Яндекс.Диске, в подпапках которой
  * лежат ссылки на публичные альбомы (имя папки = ID или ссылка альбома).
  * Данные альбомов кэшируются локально ([AlbumStore]) — повторные запуски
- * обходятся без сетевых запросов. Клик по альбому — слайдшоу по нему,
- * кнопка «Запустить слайдшоу» — по всем альбомам подряд.
+ * обходятся без сетевых запросов. Клик по альбому сразу запускает слайдшоу
+ * по нему; возврат назад — системной клавишей. Обложки докачиваются в фоне:
+ * список показывается сразу, без ожидания миниатюр.
  */
 class AlbumCollectionActivity : AppCompatActivity() {
 
@@ -33,6 +36,7 @@ class AlbumCollectionActivity : AppCompatActivity() {
     private lateinit var cache: SlideCache
     private lateinit var grid: RecyclerView
     private lateinit var statusView: TextView
+    private lateinit var loadingView: View
 
     private var diskPath = DEFAULT_PATH
     private var albums = listOf<Pair<String, YandexPublicAlbum.Album>>()
@@ -48,15 +52,15 @@ class AlbumCollectionActivity : AppCompatActivity() {
         api = YandexPublicAlbum()
         cache = SlideCache(this)
 
+        // Прогрев кэша миниатюр — как в локальном браузере файлов.
+        Thumbnails.init(this)
+
         grid = findViewById(R.id.albums_list)
         statusView = findViewById(R.id.albums_status)
+        loadingView = findViewById(R.id.albums_loading)
         grid.layoutManager = LinearLayoutManager(this)
 
-        findViewById<Button>(R.id.btn_albums_back).setOnClickListener { finish() }
         findViewById<Button>(R.id.btn_albums_refresh).setOnClickListener { scan(forceRefresh = true) }
-        findViewById<Button>(R.id.btn_albums_start).setOnClickListener {
-            startSlideshow(albums.map { it.first })
-        }
 
         scan(forceRefresh = false)
     }
@@ -64,6 +68,9 @@ class AlbumCollectionActivity : AppCompatActivity() {
     private fun scan(forceRefresh: Boolean) {
         if (loading) return
         loading = true
+        // Прототип 05: спиннер по центру, список скрыт на время скана.
+        loadingView.visibility = View.VISIBLE
+        grid.visibility = View.INVISIBLE
         lifecycleScope.launch {
             try {
                 statusView.text = getString(R.string.albums_loading)
@@ -103,25 +110,44 @@ class AlbumCollectionActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 statusView.text = e.message ?: getString(R.string.error_generic)
             } finally {
+                loadingView.visibility = View.GONE
+                grid.visibility = View.VISIBLE
                 loading = false
             }
         }
     }
 
-    private suspend fun showGrid() {
+    /**
+     * Показывает список сразу (карточки без обложек), обложки альбомов
+     * докачиваются параллельно в фоне и подставляются через [BrowserListAdapter.updateCard].
+     */
+    private fun showGrid() {
+        // Сначала карточки без миниатюр — список появляется мгновенно.
+        // isDir = true: строка альбома кликабельна (адаптер кликает только папки).
         val cards = albums.map { (id, album) ->
-            val cover = album.photos.firstOrNull()?.let { p ->
-                runCatching { cache.download(p.previewUrl, "cover-$id") }.getOrNull()
-            }
             GridCard(
                 label = album.title.ifBlank { id },
                 iconRes = R.drawable.ic_photo,
                 subtitle = getString(R.string.albums_count, album.photos.size),
-                thumbFile = cover
+                isDir = true
             )
         }
-        grid.adapter = BrowserListAdapter(lifecycleScope, cards) { position ->
-            startSlideshow(listOf(albums[position].first))
+        val adapter = BrowserListAdapter(lifecycleScope, cards) { position ->
+            // Клик по альбому — сразу слайдшоу по нему; защита от скана/обновления списка.
+            val albumId = albums.getOrNull(position)?.first ?: return@BrowserListAdapter
+            startSlideshow(listOf(albumId))
+        }
+        grid.adapter = adapter
+        // Обложки качаем независимо друг от друга: кто доехал — тот и встал.
+        albums.forEachIndexed { index, (id, album) ->
+            lifecycleScope.launch {
+                val cover = album.photos.firstOrNull()?.let { p ->
+                    runCatching { cache.download(p.previewUrl, "cover-$id") }.getOrNull()
+                }
+                if (cover != null) {
+                    adapter.updateCard(index, cards[index].copy(thumbFile = cover))
+                }
+            }
         }
     }
 

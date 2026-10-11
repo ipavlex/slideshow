@@ -1,20 +1,290 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Экран настроек (DESIGN.md §4 «07 Настройки», design/prototypes/screens/07-settings.html).
+    Вертикальный список строк-карточек «название слева — контрол справа».
+    Значение меняется клавишами ←/→ в фокусной строке (SettingsActivity.onKeyDown),
+    клик (ОК) по строке с тумблером — переключает его.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:background="@color/background"
     android:paddingStart="@dimen/screen_padding_horizontal"
     android:paddingTop="@dimen/screen_padding_vertical"
     android:paddingEnd="@dimen/screen_padding_horizontal"
-    android:paddingBottom="@dimen/screen_padding_vertical">
-    <TextView android:id="@+id/settings_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/settings" style="@style/TextAppearance.TvSlideshow.Title" />
-    <ScrollView android:layout_width="match_parent" android:layout_height="@dimen/zero_size" android:layout_weight="1" android:fillViewport="true">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/section_spacing">
-            <Button android:id="@+id/setting_duration" style="@style/Widget.TvSlideshow.Row" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_duration_label" android:gravity="center_vertical" android:drawableEnd="@drawable/ic_next"/>
-            <Button android:id="@+id/setting_mode" style="@style/Widget.TvSlideshow.Row" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_mode_label" android:gravity="center_vertical" android:drawableEnd="@drawable/ic_next"/>
-            <Button android:id="@+id/setting_order" style="@style/Widget.TvSlideshow.Row" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_order_label" android:gravity="center_vertical" android:drawableEnd="@drawable/ic_next"/>
-            <Switch android:id="@+id/setting_recursive" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_recursive_label" android:textColor="@color/text_primary" android:textSize="@dimen/text_body" android:padding="@dimen/menu_item_padding" android:focusable="true" android:thumbTint="@color/primary" android:trackTint="@color/primary_soft"/>
-            <Switch android:id="@+id/setting_shuffle" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_shuffle_label" android:textColor="@color/text_primary" android:textSize="@dimen/text_body" android:padding="@dimen/menu_item_padding" android:focusable="true" android:thumbTint="@color/primary" android:trackTint="@color/primary_soft"/>
-            <Switch android:id="@+id/setting_osd" android:layout_width="match_parent" android:layout_height="@dimen/list_row_height" android:background="@drawable/bg_tv_row" android:text="@string/setting_osd_label" android:textColor="@color/text_primary" android:textSize="@dimen/text_body" android:padding="@dimen/menu_item_padding" android:focusable="true" android:thumbTint="@color/primary" android:trackTint="@color/primary_soft"/>
+    android:paddingBottom="@dimen/screen_padding_vertical"
+    android:clipChildren="false" android:clipToPadding="false">
+
+    <TextView android:id="@+id/settings_title"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="@string/settings_title"
+        style="@style/TextAppearance.TvSlideshow.Title"/>
+
+    <!--
+        Паддинги list_edge_pad_* — запас под фокусную строку (scale 1.02 + белая
+        рамка), clipToPadding=false; clipChildren=false, чтобы рамка не обрезалась.
+    -->
+    <ScrollView
+        android:layout_width="match_parent" android:layout_height="@dimen/zero_size"
+        android:layout_weight="1" android:fillViewport="true"
+        android:scrollbars="none" android:clipToPadding="false"
+        android:clipChildren="false"
+        android:paddingStart="@dimen/list_edge_pad_h"
+        android:paddingTop="@dimen/list_edge_pad_v"
+        android:paddingEnd="@dimen/list_edge_pad_h"
+        android:paddingBottom="@dimen/list_edge_pad_v">
+
+        <!--
+            Ширина settings_list_width (620dp, в прототипе max-width 1240px);
+            прижат влево, строки match_parent наследуют эту ширину.
+        -->
+        <LinearLayout
+            android:layout_width="@dimen/settings_list_width" android:layout_height="wrap_content"
+            android:orientation="vertical" android:layout_marginTop="@dimen/section_spacing"
+            android:clipChildren="false">
+
+            <!-- 1. Анимация: сегмент [Кен Бёрнс | Классика]. -->
+            <LinearLayout android:id="@+id/row_animation"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_row_gap"
+                android:minHeight="@dimen/settings_row_min_h"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/settings_row_bg"
+                android:paddingStart="@dimen/settings_row_pad_h"
+                android:paddingEnd="@dimen/settings_row_pad_h"
+                android:paddingTop="@dimen/settings_row_pad_v"
+                android:paddingBottom="@dimen/settings_row_pad_v"
+                android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@animator/scale_on_focus_row">
+                <TextView
+                    android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="@string/settings_animation_label"
+                    style="@style/TextAppearance.TvSlideshow.Body"/>
+                <LinearLayout android:id="@+id/setting_mode"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_segment_track"
+                    android:paddingStart="@dimen/focus_stroke_width"
+                    android:paddingEnd="@dimen/focus_stroke_width"
+                    android:paddingTop="@dimen/focus_stroke_width"
+                    android:paddingBottom="@dimen/focus_stroke_width"
+                    android:layout_marginStart="@dimen/section_spacing">
+                    <TextView android:id="@+id/setting_mode_ken_burns"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/choose_ken_burns"
+                        android:background="@drawable/bg_segment_active"
+                        android:textColor="@color/text_primary" android:textStyle="bold"
+                        style="@style/Widget.TvSlideshow.SegmentButton"/>
+                    <TextView android:id="@+id/setting_mode_classic"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/choose_classic"
+                        style="@style/Widget.TvSlideshow.SegmentButton"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 2. Скорость слайда: степпер [−] значение [+], 3–60 сек. -->
+            <LinearLayout android:id="@+id/row_speed"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_row_gap"
+                android:minHeight="@dimen/settings_row_min_h"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/settings_row_bg"
+                android:paddingStart="@dimen/settings_row_pad_h"
+                android:paddingEnd="@dimen/settings_row_pad_h"
+                android:paddingTop="@dimen/settings_row_pad_v"
+                android:paddingBottom="@dimen/settings_row_pad_v"
+                android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@animator/scale_on_focus_row">
+                <TextView
+                    android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="@string/settings_speed_label"
+                    style="@style/TextAppearance.TvSlideshow.Body"/>
+                <LinearLayout
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:gravity="center_vertical"
+                    android:layout_marginStart="@dimen/section_spacing">
+                    <Button android:id="@+id/setting_duration_minus"
+                        android:layout_width="@dimen/stepper_btn" android:layout_height="@dimen/stepper_btn"
+                        android:minHeight="@dimen/zero_size"
+                        android:paddingStart="@dimen/zero_size" android:paddingEnd="@dimen/zero_size"
+                        android:background="@drawable/settings_stepper_btn"
+                        android:textColor="@color/text_primary" android:textSize="@dimen/text_menu"
+                        android:focusable="false"/>
+                    <TextView android:id="@+id/setting_duration"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:minWidth="@dimen/stepper_btn" android:gravity="center"
+                        android:layout_marginStart="@dimen/medium_spacing"
+                        android:layout_marginEnd="@dimen/medium_spacing"
+                        android:textStyle="bold"
+                        style="@style/TextAppearance.TvSlideshow.Body"/>
+                    <Button android:id="@+id/setting_duration_plus"
+                        android:layout_width="@dimen/stepper_btn" android:layout_height="@dimen/stepper_btn"
+                        android:minHeight="@dimen/zero_size"
+                        android:paddingStart="@dimen/zero_size" android:paddingEnd="@dimen/zero_size"
+                        android:background="@drawable/settings_stepper_btn"
+                        android:textColor="@color/text_primary" android:textSize="@dimen/text_menu"
+                        android:focusable="false"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 3. Зациклить. -->
+            <LinearLayout android:id="@+id/row_loop"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_row_gap"
+                android:minHeight="@dimen/settings_row_min_h"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/settings_row_bg"
+                android:paddingStart="@dimen/settings_row_pad_h"
+                android:paddingEnd="@dimen/settings_row_pad_h"
+                android:paddingTop="@dimen/settings_row_pad_v"
+                android:paddingBottom="@dimen/settings_row_pad_v"
+                android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@animator/scale_on_focus_row">
+                <TextView
+                    android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="@string/settings_loop_label"
+                    style="@style/TextAppearance.TvSlideshow.Body"/>
+                <Switch android:id="@+id/setting_loop"
+                    android:layout_width="@dimen/switch_w" android:layout_height="@dimen/switch_h"
+                    android:layout_marginStart="@dimen/section_spacing"
+                    android:focusable="false" android:clickable="false"
+                    android:thumb="@drawable/toggle_thumb" android:track="@drawable/toggle_track"/>
+            </LinearLayout>
+
+            <!-- 4. Сортировка: сегмент [Имя | Дата изменения]. -->
+            <LinearLayout android:id="@+id/row_sort"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_row_gap"
+                android:minHeight="@dimen/settings_row_min_h"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/settings_row_bg"
+                android:paddingStart="@dimen/settings_row_pad_h"
+                android:paddingEnd="@dimen/settings_row_pad_h"
+                android:paddingTop="@dimen/settings_row_pad_v"
+                android:paddingBottom="@dimen/settings_row_pad_v"
+                android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@animator/scale_on_focus_row">
+                <TextView
+                    android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="@string/settings_sort_label"
+                    style="@style/TextAppearance.TvSlideshow.Body"/>
+                <LinearLayout android:id="@+id/setting_sort"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_segment_track"
+                    android:paddingStart="@dimen/focus_stroke_width"
+                    android:paddingEnd="@dimen/focus_stroke_width"
+                    android:paddingTop="@dimen/focus_stroke_width"
+                    android:paddingBottom="@dimen/focus_stroke_width"
+                    android:layout_marginStart="@dimen/section_spacing">
+                    <TextView android:id="@+id/setting_sort_name"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/sort_by_name"
+                        android:background="@drawable/bg_segment_active"
+                        android:textColor="@color/text_primary" android:textStyle="bold"
+                        style="@style/Widget.TvSlideshow.SegmentButton"/>
+                    <TextView android:id="@+id/setting_sort_date"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="@string/sort_by_date"
+                        style="@style/Widget.TvSlideshow.SegmentButton"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 5. Случайный порядок. -->
+            <LinearLayout android:id="@+id/row_shuffle"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_row_gap"
+                android:minHeight="@dimen/settings_row_min_h"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/settings_row_bg"
+                android:paddingStart="@dimen/settings_row_pad_h"
+                android:paddingEnd="@dimen/settings_row_pad_h"
+                android:paddingTop="@dimen/settings_row_pad_v"
+                android:paddingBottom="@dimen/settings_row_pad_v"
+                android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@animator/scale_on_focus_row">
+                <TextView
+                    android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="@string/setting_shuffle_label"
+                    style="@style/TextAppearance.TvSlideshow.Body"/>
+                <Switch android:id="@+id/setting_shuffle"
+                    android:layout_width="@dimen/switch_w" android:layout_height="@dimen/switch_h"
+                    android:layout_marginStart="@dimen/section_spacing"
+                    android:focusable="false" android:clickable="false"
+                    android:thumb="@drawable/toggle_thumb" android:track="@drawable/toggle_track"/>
+            </LinearLayout>
+
+            <!-- 6. Имя файла на экране (OSD-плашка). -->
+            <LinearLayout android:id="@+id/row_filename"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_row_gap"
+                android:minHeight="@dimen/settings_row_min_h"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/settings_row_bg"
+                android:paddingStart="@dimen/settings_row_pad_h"
+                android:paddingEnd="@dimen/settings_row_pad_h"
+                android:paddingTop="@dimen/settings_row_pad_v"
+                android:paddingBottom="@dimen/settings_row_pad_v"
+                android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@animator/scale_on_focus_row">
+                <TextView
+                    android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="@string/settings_filename_label"
+                    style="@style/TextAppearance.TvSlideshow.Body"/>
+                <Switch android:id="@+id/setting_filename"
+                    android:layout_width="@dimen/switch_w" android:layout_height="@dimen/switch_h"
+                    android:layout_marginStart="@dimen/section_spacing"
+                    android:focusable="false" android:clickable="false"
+                    android:thumb="@drawable/toggle_thumb" android:track="@drawable/toggle_track"/>
+            </LinearLayout>
+
+            <!-- 7. Автозапуск последней папки. -->
+            <LinearLayout android:id="@+id/row_autostart"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_row_gap"
+                android:minHeight="@dimen/settings_row_min_h"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/settings_row_bg"
+                android:paddingStart="@dimen/settings_row_pad_h"
+                android:paddingEnd="@dimen/settings_row_pad_h"
+                android:paddingTop="@dimen/settings_row_pad_v"
+                android:paddingBottom="@dimen/settings_row_pad_v"
+                android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@animator/scale_on_focus_row">
+                <TextView
+                    android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="@string/settings_autostart_label"
+                    style="@style/TextAppearance.TvSlideshow.Body"/>
+                <Switch android:id="@+id/setting_autostart"
+                    android:layout_width="@dimen/switch_w" android:layout_height="@dimen/switch_h"
+                    android:layout_marginStart="@dimen/section_spacing"
+                    android:focusable="false" android:clickable="false"
+                    android:thumb="@drawable/toggle_thumb" android:track="@drawable/toggle_track"/>
+            </LinearLayout>
+
+            <!-- 8. Включать вложенные папки. -->
+            <LinearLayout android:id="@+id/row_recursive"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_row_gap"
+                android:minHeight="@dimen/settings_row_min_h"
+                android:orientation="horizontal" android:gravity="center_vertical"
+                android:background="@drawable/settings_row_bg"
+                android:paddingStart="@dimen/settings_row_pad_h"
+                android:paddingEnd="@dimen/settings_row_pad_h"
+                android:paddingTop="@dimen/settings_row_pad_v"
+                android:paddingBottom="@dimen/settings_row_pad_v"
+                android:focusable="true" android:clickable="true"
+                android:stateListAnimator="@animator/scale_on_focus_row">
+                <TextView
+                    android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="@string/setting_recursive_label"
+                    style="@style/TextAppearance.TvSlideshow.Body"/>
+                <Switch android:id="@+id/setting_recursive"
+                    android:layout_width="@dimen/switch_w" android:layout_height="@dimen/switch_h"
+                    android:layout_marginStart="@dimen/section_spacing"
+                    android:focusable="false" android:clickable="false"
+                    android:thumb="@drawable/toggle_thumb" android:track="@drawable/toggle_track"/>
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

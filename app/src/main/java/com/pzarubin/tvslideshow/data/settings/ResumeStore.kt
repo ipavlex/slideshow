@@ -23,4 +23,16 @@ class ResumeStore(context: Context) {
     fun clear(sourceKey: String) {
         prefs.edit().remove(sourceKey).apply()
     }
+
+    /**
+     * Последний запущенный источник (строка вида «local|/путь», «yandex|…»,
+     * «album|…», «albums|id1,id2») — для опции «Автозапуск последней папки».
+     */
+    var lastSource: String?
+        get() = prefs.getString(KEY_LAST_SOURCE, null)
+        set(value) = prefs.edit().putString(KEY_LAST_SOURCE, value).apply()
+
+    private companion object {
+        const val KEY_LAST_SOURCE = "last_source"
+    }
 }

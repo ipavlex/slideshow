@@ -17,12 +17,23 @@ class AlbumStore(context: Context) {
 
     fun has(albumId: String): Boolean = File(dir, "$albumId.json").exists()
 
-    /** Читает альбом из кэша; null — если нет или файл повреждён. */
-    fun get(albumId: String): YandexPublicAlbum.Album? {
+    /**
+     * Читает альбом из кэша; null — если нет, повреждён или устарел.
+     * Превью-ссылки Яндекса (xxxlPreview) живут около суток — кэш старше
+     * [maxAgeMs] считаем протухшим: превью и слайдшоу по нему всё равно
+     * не скачаются. [maxAgeMs] <= 0 — без ограничения по возрасту.
+     */
+    fun get(albumId: String, maxAgeMs: Long = DEFAULT_MAX_AGE_MS): YandexPublicAlbum.Album? {
         val f = File(dir, "$albumId.json")
         if (!f.exists()) return null
         return runCatching {
             val o = JSONObject(f.readText())
+            if (maxAgeMs > 0L) {
+                val fetchedAt = o.optLong("fetchedAt", 0L)
+                if (fetchedAt <= 0L || System.currentTimeMillis() - fetchedAt > maxAgeMs) {
+                    return null
+                }
+            }
             YandexPublicAlbum.Album(
                 url = o.getString("url"),
                 title = o.optString("title"),
@@ -81,6 +92,11 @@ class AlbumStore(context: Context) {
 
     fun delete(albumId: String) {
         File(dir, "$albumId.json").delete()
+    }
+
+    companion object {
+        /** Половина срока жизни превью-ссылок Яндекса (~сутки). */
+        const val DEFAULT_MAX_AGE_MS = 12L * 60 * 60 * 1000
     }
 
     private inline fun <T> JSONArray?.toList(create: (JSONObject) -> T): List<T> {

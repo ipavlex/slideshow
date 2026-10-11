@@ -3,14 +3,18 @@ package com.pzarubin.tvslideshow.ui
 import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -41,10 +45,10 @@ import com.pzarubin.tvslideshow.playback.SlideshowView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.math.abs
 
 /**
  * Полноэкранное слайдшоу (фото и видео) с OSD-оверлеем и MediaSession.
@@ -68,6 +72,9 @@ class SlideshowActivity : AppCompatActivity() {
     /** Настройка «показывать плашку (OSD)» — гейтится в [showOsd]. */
     private var osdEnabled = true
 
+    /** Настройка «Зациклить»: при false показ останавливается на последнем слайде. */
+    private var loopEnabled = true
+
     // Prefetch следующего фото-слайда: декодируем заранее, пока показывается
     // текущий, чтобы HEIC (медленный программный декод) не давал чёрный экран.
     private var prefetchJob: Job? = null
@@ -85,9 +92,17 @@ class SlideshowActivity : AppCompatActivity() {
     private lateinit var osdState: TextView
     private lateinit var osdTime: TextView
     private lateinit var osdProgress: ProgressBar
+    private lateinit var osdSpeedHud: View
+    private lateinit var osdSpeedHudText: TextView
     private val osdHideHandler = Handler(Looper.getMainLooper())
     private val osdHideRunnable = Runnable { hideOsd() }
-    private var osdJob: Job? = null
+    private val speedHudHideRunnable = Runnable { osdSpeedHud.visibility = View.GONE }
+
+    /** Индекс в [SPEED_INTERVALS_SEC] — интервал смены слайдов. */
+    private var speedIndex = DEFAULT_SPEED_INDEX
+
+    /** Контекст источника для osd_title (папка/альбом, прототип 08). */
+    private lateinit var osdContext: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -127,8 +142,18 @@ class SlideshowActivity : AppCompatActivity() {
 
         mode = settings.mode
         photoDuration = settings.photoDurationMs.takeIf { it > 0L } ?: mode.photoDurationMs
+        // Интервал смены слайдов сводим к набору 5/10/15/20/30 сек (DESIGN.md §08):
+        // настройка setting_duration задаёт стартовую точку, дальше — пультом ↑/↓.
+        speedIndex = SPEED_INTERVALS_SEC.indices.minByOrNull {
+            abs(SPEED_INTERVALS_SEC[it] * 1000L - photoDuration)
+        } ?: DEFAULT_SPEED_INDEX
+        photoDuration = SPEED_INTERVALS_SEC[speedIndex] * 1000L
         osdEnabled = settings.showOsd
+        loopEnabled = settings.loop
         sourceKey = buildSourceKey(sourceType, albumUrl, albumIds)
+        // Запоминаем последний источник — для опции «Автозапуск последней папки».
+        sourceKey?.let { ResumeStore(this).lastSource = it }
+        osdContext = buildOsdContext(sourceType, albumUrl, albumIds)
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUi()
@@ -166,8 +191,6 @@ class SlideshowActivity : AppCompatActivity() {
             mediaSession = null
         }
 
-        startOsdTicker()
-
         lifecycleScope.launch {
             try {
                 // Публичный альбом: источник создаётся асинхронно после bootstrap.
@@ -189,6 +212,7 @@ class SlideshowActivity : AppCompatActivity() {
                 }
                 val items = PlaylistBuilder.build(source.list(), settings.order, settings.shuffle)
                 if (items.isEmpty()) {
+                    Log.w(TAG, "Нет медиа: source=$sourceType, sourceKey=$sourceKey")
                     Toast.makeText(
                         this@SlideshowActivity,
                         R.string.no_media_found,
@@ -206,6 +230,8 @@ class SlideshowActivity : AppCompatActivity() {
                     startSlideshow(items)
                 }
             } catch (e: Exception) {
+                // Реальная причина видна в logcat: тост часто не успевают прочесть.
+                Log.e(TAG, "Слайдшоу не запустилось: source=$sourceType, key=$sourceKey", e)
                 Toast.makeText(
                     this@SlideshowActivity,
                     e.message ?: getString(R.string.error_generic),
@@ -223,16 +249,21 @@ class SlideshowActivity : AppCompatActivity() {
         osdState = osdOverlay.findViewById(R.id.osd_state)
         osdTime = osdOverlay.findViewById(R.id.osd_time)
         osdProgress = osdOverlay.findViewById(R.id.osd_progress)
+        osdSpeedHud = osdOverlay.findViewById(R.id.osd_speed_hud)
+        osdSpeedHudText = osdOverlay.findViewById(R.id.osd_speed_hud_text)
+        osdProgress.max = PROGRESS_MAX
     }
 
     private fun startSlideshow(items: List<MediaItem>, startIndex: Int = 0) {
         playlist = items
         val engine = SlideshowEngine(items, lifecycleScope) { photoDuration }
         this.engine = engine
+        // Настройка «Зациклить»: при выключенном — показ останавливается на последнем слайде.
+        engine.loop = loopEnabled
         engine.onSlide = { showSlide(it) }
         engine.onStateChanged = { onEngineStateChanged(it) }
         engine.onSpeedChanged = { speed ->
-            // Скорость влияет и на видео: ускоряем/замедляем воспроизведение.
+            // Множитель скорости влияет на видео: ускоряем/замедляем воспроизведение.
             if (currentItem?.kind == MediaItem.Kind.VIDEO) {
                 slideshowView.player.setPlaybackSpeed(speed)
             }
@@ -252,23 +283,29 @@ class SlideshowActivity : AppCompatActivity() {
         return items.indexOfFirst { it.id == savedId }.takeIf { it > 0 } ?: 0
     }
 
-    /** Диалог «Продолжить / С начала» при наличии сохранённой позиции. */
+    /** Диалог «Продолжить / С начала» при наличии сохранённой позиции (прототип 06). */
     private fun askResume(startIndex: Int, onStart: (Int) -> Unit) {
+        // Обёртка-FrameLayout нужна, чтобы сохранились layout-параметры корня
+        // dialog_resume (ширина alert_width, гравитация center).
+        val view = layoutInflater.inflate(R.layout.dialog_resume, FrameLayout(this), false)
         val dialog = AlertDialog.Builder(this)
-            .setTitle(R.string.resume_title)
-            .setMessage(R.string.resume_message)
-            .setPositiveButton(R.string.resume_continue) { _, _ -> onStart(startIndex) }
-            .setNegativeButton(R.string.resume_start_over) { _, _ ->
-                sourceKey?.let { ResumeStore(this).clear(it) }
-                onStart(0)
-            }
+            .setView(view)
             .setOnCancelListener { finish() }
             .create()
-        // При повторном открытии слайдшоу фокус сразу на «Продолжить».
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).requestFocus()
+        view.findViewById<Button>(R.id.btn_resume_continue).setOnClickListener {
+            dialog.dismiss()
+            onStart(startIndex)
         }
+        view.findViewById<Button>(R.id.btn_resume_start_over).setOnClickListener {
+            dialog.dismiss()
+            sourceKey?.let { ResumeStore(this).clear(it) }
+            onStart(0)
+        }
+        // Прозрачное окно: фон рисует сам layout (osd_alert).
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.show()
+        // При повторном открытии слайдшоу фокус сразу на «Продолжить».
+        view.findViewById<Button>(R.id.btn_resume_continue).requestFocus()
     }
 
     /** Строит стабильный ключ источника по параметрам запуска. */
@@ -282,6 +319,23 @@ class SlideshowActivity : AppCompatActivity() {
         SOURCE_ALBUMS -> "albums|${albumIds?.sorted()?.joinToString(",") ?: ""}"
         SOURCE_LOCAL -> "local|${intent.getStringExtra(EXTRA_FOLDER_PATH) ?: ""}"
         else -> sourceType
+    }
+
+    /** Контекст источника для osd_title (прототип 08: «DCIM · Camera 2024»). */
+    private fun buildOsdContext(
+        sourceType: String,
+        albumUrl: String?,
+        albumIds: List<String>?
+    ): String = when (sourceType) {
+        SOURCE_YANDEX -> intent.getStringExtra(EXTRA_YANDEX_PATH)
+            ?.trim('/')?.substringAfterLast('/')
+            ?.ifEmpty { null } ?: getString(R.string.yandex_disk)
+        SOURCE_ALBUM -> albumUrl?.trimEnd('/')?.substringAfterLast('/')
+            ?.ifEmpty { null } ?: getString(R.string.album_link)
+        SOURCE_ALBUMS -> getString(R.string.albums_title)
+        else -> intent.getStringExtra(EXTRA_FOLDER_PATH)
+            ?.let { File(it).name }
+            ?.ifEmpty { null } ?: getString(R.string.folder_browser_title)
     }
 
     /** Целевой размер декодирования: экран с запасом под зум Кен Бёрнса. */
@@ -421,9 +475,11 @@ class SlideshowActivity : AppCompatActivity() {
         return when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> { e.previous(); true }
             KeyEvent.KEYCODE_DPAD_RIGHT -> { e.next(); true }
-            KeyEvent.KEYCODE_DPAD_UP -> { e.speedUp(); true }
-            KeyEvent.KEYCODE_DPAD_DOWN -> { e.speedDown(); true }
+            // ↑ — быстрее (короче интервал), ↓ — медленнее (DESIGN.md §3).
+            KeyEvent.KEYCODE_DPAD_UP -> { changeSpeed(faster = true); true }
+            KeyEvent.KEYCODE_DPAD_DOWN -> { changeSpeed(faster = false); true }
             KeyEvent.KEYCODE_DPAD_CENTER,
+            KeyEvent.KEYCODE_SPACE,
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { e.toggle(); true }
             KeyEvent.KEYCODE_MEDIA_REWIND -> {
                 slideshowView.seekVideoBy(-SEEK_STEP_MS)
@@ -435,24 +491,76 @@ class SlideshowActivity : AppCompatActivity() {
                 showOsd(force = true)
                 true
             }
+            // Google TV: дополнительные коды перемотки на части пультов.
+            KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD -> {
+                slideshowView.seekVideoBy(-SEEK_STEP_MS)
+                showOsd(force = true)
+                true
+            }
+            KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD -> {
+                slideshowView.seekVideoBy(SEEK_STEP_MS)
+                showOsd(force = true)
+                true
+            }
             KeyEvent.KEYCODE_BACK -> { finish(); true }
             else -> super.onKeyDown(keyCode, event)
         }
     }
 
+    // --- Управление с пульта (прототип 08: кнопок на экране нет) ---
+
+    /** ↑ — быстрее, ↓ — медленнее. Набор интервалов: 5/10/15/20/30 сек. */
+    private fun changeSpeed(faster: Boolean) {
+        val next = if (faster) speedIndex - 1 else speedIndex + 1
+        if (next !in SPEED_INTERVALS_SEC.indices) return
+        speedIndex = next
+        val seconds = SPEED_INTERVALS_SEC[speedIndex]
+        photoDuration = seconds * 1000L
+        applyIntervalToEngine()
+        val text = getString(R.string.osd_speed_seconds, seconds)
+        osdSpeed.text = text
+        osdSpeedHudText.text = text
+        showOsd(force = true)
+        showSpeedHud()
+    }
+
+    /**
+     * Применяет новый интервал к [SlideshowEngine]: таймер текущего слайда
+     * перезапускается на полную длительность — как restartTimer в прототипе.
+     * Только для фото: у видео своего таймера нет, а pause/resize замирал
+     * бы кадром (ревью). В паузе интервал применится при продолжении показа.
+     */
+    private fun applyIntervalToEngine() {
+        val e = engine ?: return
+        if (e.state != SlideshowEngine.State.PLAYING) return
+        if (currentItem?.kind == MediaItem.Kind.VIDEO) return
+        e.pause()
+        e.resume()
+    }
+
+    /** HUD скорости по центру: «Скорость: N сек», скрывается через 1,5 сек. */
+    private fun showSpeedHud() {
+        osdHideHandler.removeCallbacks(speedHudHideRunnable)
+        osdSpeedHud.visibility = View.VISIBLE
+        osdHideHandler.postDelayed(speedHudHideRunnable, SPEED_HUD_TIMEOUT_MS)
+    }
+
     // --- OSD ---
 
     /**
-     * Показывает OSD. При выключенной настройке [showOsdEnabled] плашка
-     * показывается только принудительно ([force]) — как отклик на смену
-     * скорости или перемотку — и скрывается по таймауту как обычно.
+     * Показывает OSD и сбрасывает таймер авто-скрытия (3 сек). В паузе
+     * оверлей не скрывается автоматически (DESIGN.md §08). При выключенной
+     * настройке [osdEnabled] плашка показывается только принудительно
+     * ([force]) — как отклик на смену скорости или перемотку.
      */
     private fun showOsd(force: Boolean = false) {
         if (!osdEnabled && !force) return
         osdHideHandler.removeCallbacks(osdHideRunnable)
         updateOsdContent()
         osdOverlay.visibility = View.VISIBLE
-        osdHideHandler.postDelayed(osdHideRunnable, OSD_TIMEOUT_MS)
+        if (engine?.state != SlideshowEngine.State.PAUSED) {
+            osdHideHandler.postDelayed(osdHideRunnable, OSD_TIMEOUT_MS)
+        }
     }
 
     private fun hideOsd() {
@@ -461,49 +569,22 @@ class SlideshowActivity : AppCompatActivity() {
 
     private fun updateOsdContent() {
         val e = engine ?: return
-        osdTitle.text = currentItem?.name ?: ""
+        osdTitle.text = osdContext
+        osdTime.text = currentItem?.name ?: ""
         osdCounter.text = getString(R.string.osd_counter, e.currentIndex + 1, e.count)
-        osdSpeed.text = getString(R.string.speed_value, formatSpeed(e.speedMultiplier))
-        osdState.text = if (e.state == SlideshowEngine.State.PAUSED) {
-            getString(R.string.osd_paused)
+        osdSpeed.text = getString(R.string.osd_speed_seconds, SPEED_INTERVALS_SEC[speedIndex])
+        if (e.state == SlideshowEngine.State.PAUSED) {
+            osdState.text = getString(R.string.osd_paused)
+            osdState.visibility = View.VISIBLE
         } else {
-            ""
+            osdState.visibility = View.GONE
         }
-        val isVideo = currentItem?.kind == MediaItem.Kind.VIDEO
-        osdProgress.visibility = if (isVideo) View.VISIBLE else View.GONE
-        if (!isVideo) osdTime.text = ""
-    }
-
-    private fun startOsdTicker() {
-        osdJob?.cancel()
-        osdJob = lifecycleScope.launch {
-            while (isActive) {
-                if (currentItem?.kind == MediaItem.Kind.VIDEO &&
-                    osdOverlay.visibility == View.VISIBLE
-                ) {
-                    updateVideoProgress()
-                }
-                delay(250)
-            }
+        // Прогресс — позиция в папке (прототип 08).
+        osdProgress.progress = if (e.count > 0) {
+            (e.currentIndex + 1) * PROGRESS_MAX / e.count
+        } else {
+            0
         }
-    }
-
-    private fun updateVideoProgress() {
-        val p = slideshowView.player
-        if (p.currentMediaItem == null) return
-        val dur = p.duration.coerceAtLeast(0L)
-        val pos = p.currentPosition.coerceIn(0L, dur)
-        osdProgress.progress = if (dur > 0L) ((pos * 1000) / dur).toInt() else 0
-        osdTime.text = "${formatTime(pos)} / ${formatTime(dur)}"
-    }
-
-    private fun formatTime(ms: Long): String {
-        val total = ms / 1000
-        return "%d:%02d".format(total / 60, total % 60)
-    }
-
-    private fun formatSpeed(v: Float): String {
-        return if (v == v.toLong().toFloat()) v.toLong().toString() else v.toString()
     }
 
     @Suppress("DEPRECATION")
@@ -520,8 +601,8 @@ class SlideshowActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        osdJob?.cancel()
         osdHideHandler.removeCallbacks(osdHideRunnable)
+        osdHideHandler.removeCallbacks(speedHudHideRunnable)
         prefetchJob?.cancel()
         prefetchedBitmap?.recycle()
         prefetchedBitmap = null
@@ -532,6 +613,7 @@ class SlideshowActivity : AppCompatActivity() {
     }
 
     companion object {
+        private const val TAG = "SlideshowActivity"
         const val EXTRA_FOLDER_PATH = "extra_folder_path"
         const val EXTRA_SOURCE_TYPE = "extra_source_type"
         const val EXTRA_YANDEX_PATH = "extra_yandex_path"
@@ -543,6 +625,16 @@ class SlideshowActivity : AppCompatActivity() {
         const val SOURCE_ALBUMS = "albums"
         const val SEEK_STEP_MS = 10_000L
         const val OSD_TIMEOUT_MS = 3000L
+        const val SPEED_HUD_TIMEOUT_MS = 1500L
+
+        /** Интервалы смены слайдов, сек (DESIGN.md §08). */
+        val SPEED_INTERVALS_SEC = intArrayOf(5, 10, 15, 20, 30)
+
+        /** Стартовый индекс интервала — 10 сек, как в прототипе. */
+        const val DEFAULT_SPEED_INDEX = 1
+
+        /** Максимум шкалы osd_progress (позиция в папке). */
+        const val PROGRESS_MAX = 10_000
 
         /** Если фото не показалось за это время — пропускаем (защита от зависания). */
         const val PHOTO_LOAD_WATCHDOG_MS = 30_000L

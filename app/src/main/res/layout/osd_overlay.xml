@@ -1,31 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    OSD слайдшоу — прототип 08: только информация, кнопок нет,
+    всё управление с пульта. Показывается при любом нажатии,
+    скрывается через 3 сек бездействия (в паузе не скрывается).
+-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:focusable="false" android:clickable="false">
-    <LinearLayout android:id="@+id/osd_panel" android:layout_width="match_parent"
-        android:layout_height="@dimen/osd_height" android:layout_gravity="bottom"
-        android:layout_marginStart="@dimen/osd_side_padding" android:layout_marginEnd="@dimen/osd_side_padding"
-        android:layout_marginBottom="@dimen/screen_padding_vertical" android:orientation="vertical"
-        android:background="@drawable/osd_background" android:padding="@dimen/menu_item_padding">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="@dimen/zero_size"
-            android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical">
-            <TextView android:id="@+id/osd_title" android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
-                android:layout_weight="1" android:textColor="@color/text_primary" android:textSize="@dimen/text_body"
-                android:maxLines="1" android:ellipsize="middle"/>
-            <TextView android:id="@+id/osd_counter" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
-            <TextView android:id="@+id/osd_time" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/medium_spacing" android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
-        </LinearLayout>
-        <ProgressBar android:id="@+id/osd_progress" style="?android:attr/progressBarStyleHorizontal"
+
+    <!-- Градиентная подложка для читаемости нижней панели (видна вместе с OSD). -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/menu_card_height"
+        android:layout_gravity="bottom"
+        android:background="@drawable/scrim_bottom"
+        android:focusable="false" android:clickable="false"/>
+
+    <!-- Контекст источника: папка/альбом (прототип: «DCIM · Camera 2024»).
+         Белый текст (@color/text_primary) — как имя файла и счётчик. -->
+    <TextView android:id="@+id/osd_title"
+        style="@style/TextAppearance.TvSlideshow.Caption"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="@dimen/osd_side_padding"
+        android:layout_marginTop="@dimen/large_spacing"
+        android:maxLines="1" android:ellipsize="end"
+        android:textColor="@color/text_primary"
+        android:shadowColor="@color/scrim"
+        android:shadowDx="0" android:shadowDy="2" android:shadowRadius="6"
+        android:focusable="false" android:clickable="false"/>
+
+    <!-- Нижняя панель: прогресс, имя файла + бейдж «Пауза», счётчик + скорость. -->
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="@dimen/osd_side_padding"
+        android:layout_marginEnd="@dimen/osd_side_padding"
+        android:layout_marginBottom="@dimen/osd_bottom_margin"
+        android:orientation="vertical"
+        android:focusable="false" android:clickable="false">
+
+        <!-- Позиция в папке (DESIGN.md §08: тонкий прогресс-бар над панелью). -->
+        <ProgressBar android:id="@+id/osd_progress"
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent" android:layout_height="@dimen/progress_height"
-            android:progressTint="@color/primary" android:progressBackgroundTint="@color/surface"/>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginTop="@dimen/small_spacing">
-            <TextView android:id="@+id/osd_state" android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
-                android:layout_weight="1" android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
-            <TextView android:id="@+id/osd_speed" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption"/>
+            android:layout_marginBottom="@dimen/medium_spacing"
+            android:progressTint="@android:color/white"
+            android:progressBackgroundTint="@color/divider"
+            android:focusable="false" android:clickable="false"/>
+
+        <LinearLayout
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="bottom">
+
+            <!-- Имя текущего файла + бейдж «Пауза». -->
+            <LinearLayout
+                android:layout_width="@dimen/zero_size" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView android:id="@+id/osd_time"
+                    style="@style/TextAppearance.TvSlideshow.Body"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:maxLines="1" android:ellipsize="end"
+                    android:shadowColor="@color/scrim"
+                    android:shadowDx="0" android:shadowDy="2" android:shadowRadius="6"
+                    android:focusable="false" android:clickable="false"/>
+
+                <TextView android:id="@+id/osd_state"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/medium_spacing"
+                    android:background="@drawable/osd_badge"
+                    android:textColor="@color/background"
+                    android:textSize="@dimen/keycap_text"
+                    android:textStyle="bold"
+                    android:paddingStart="@dimen/keycap_pad_h"
+                    android:paddingEnd="@dimen/keycap_pad_h"
+                    android:paddingTop="@dimen/small_spacing"
+                    android:paddingBottom="@dimen/small_spacing"
+                    android:visibility="gone"
+                    android:focusable="false" android:clickable="false"/>
+            </LinearLayout>
+
+            <!-- Крупный счётчик «3 / 123», под ним «Скорость: 10 сек». -->
+            <LinearLayout
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/medium_spacing"
+                android:orientation="vertical" android:gravity="end">
+
+                <TextView android:id="@+id/osd_counter"
+                    style="@style/TextAppearance.TvSlideshow.OsdCounter"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:shadowColor="@color/scrim"
+                    android:shadowDx="0" android:shadowDy="2" android:shadowRadius="6"
+                    android:focusable="false" android:clickable="false"/>
+
+                <TextView android:id="@+id/osd_speed"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/small_spacing"
+                    android:gravity="end"
+                    android:textColor="@color/text_primary"
+                    android:textSize="@dimen/osd_speed_text"
+                    android:shadowColor="@color/scrim"
+                    android:shadowDx="0" android:shadowDy="2" android:shadowRadius="6"
+                    android:focusable="false" android:clickable="false"/>
+            </LinearLayout>
         </LinearLayout>
+
+        <!-- Подсказки пульта по центру. -->
+        <TextView android:id="@+id/osd_hints"
+            style="@style/TextAppearance.TvSlideshow.OsdHints"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/osd_hints_margin_top"
+            android:text="@string/osd_hints"
+            android:shadowColor="@color/scrim"
+            android:shadowDx="0" android:shadowDy="2" android:shadowRadius="6"
+            android:focusable="false" android:clickable="false"/>
+    </LinearLayout>
+
+    <!-- HUD скорости по центру: всплывает при смене скорости, скрыт через 1,5 сек. -->
+    <LinearLayout android:id="@+id/osd_speed_hud"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:background="@drawable/bg_glass_hud"
+        android:paddingStart="@dimen/hud_padding_x" android:paddingEnd="@dimen/hud_padding_x"
+        android:paddingTop="@dimen/hud_padding_y" android:paddingBottom="@dimen/hud_padding_y"
+        android:visibility="gone"
+        android:focusable="false" android:clickable="false">
+
+        <TextView android:id="@+id/osd_speed_hud_text"
+            style="@style/TextAppearance.TvSlideshow.GlassHud"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:focusable="false" android:clickable="false"/>
     </LinearLayout>
 </FrameLayout>

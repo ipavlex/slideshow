@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Трек переключателя (прототип 07): пилюля 42×24dp; в OFF — белый 16%
+    (rgba(255,255,255,0.16)), в ON — зелёный (green из макета).
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/success"/>
+            <corners android:radius="12dp"/>
+            <size android:width="42dp" android:height="24dp"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/toggle_off"/>
+            <corners android:radius="12dp"/>
+            <size android:width="42dp" android:height="24dp"/>
+        </shape>
+    </item>
+</selector>

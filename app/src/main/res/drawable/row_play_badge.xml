@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Бейдж «видео» в углу миниатюры (DESIGN.md §4): полупрозрачный чёрный круг
+     + белый треугольник ▶ (треугольник ≈ 12 единиц viewport при круге 24). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/icon_size_small" android:height="@dimen/icon_size_small"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:fillColor="@color/scrim"
+        android:pathData="M12,0a12,12 0 1,0 0,24a12,12 0 1,0 0,-24z" />
+    <path
+        android:fillColor="@color/text_primary"
+        android:pathData="M9,6.5L18.5,12L9,17.5Z" />
+</vector>

@@ -8,7 +8,9 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
+import android.util.Log
 import android.view.KeyEvent
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -21,22 +23,31 @@ import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.source.MediaFileTypes
 import com.pzarubin.tvslideshow.playback.Thumbnails
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
  * Встроенный браузер папок (внутренняя память + USB). Показывает вложенные папки,
- * а также медиафайлы текущей папки (фото/видео) — сеткой карточек. Кнопка
- * «Назад» поднимается на уровень выше, «Запустить слайдшоу» выбирает текущую
- * папку. Возвращает путь выбранной папки через [EXTRA_FOLDER_PATH].
+ * а также медиафайлы текущей папки — вертикальным списком строк. Кнопка
+ * «Назад» (системная) поднимается на уровень выше, «Смотреть слайдшоу» выбирает
+ * текущую папку. Пока список грузится — спиннер «Загрузка…», кнопка недоступна.
+ * Возвращает путь выбранной папки через [EXTRA_FOLDER_PATH].
  */
 class FolderBrowserActivity : AppCompatActivity() {
 
     private lateinit var pathView: TextView
     private lateinit var grid: RecyclerView
+    private lateinit var loadingView: View
+    private lateinit var startButton: Button
 
     private var currentDir: File? = null
     private var roots: List<Pair<File, String>> = emptyList()
     private var rows: List<BrowserRow> = emptyList()
+
+    /** Счётчик запусков [load] — для отбрасывания устаревших ответов. */
+    private var loadGeneration = 0
 
     private val readPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -52,9 +63,12 @@ class FolderBrowserActivity : AppCompatActivity() {
         pathView = findViewById(R.id.browser_path)
         grid = findViewById(R.id.browser_list)
         grid.layoutManager = LinearLayoutManager(this)
+        loadingView = findViewById(R.id.browser_loading)
+        startButton = findViewById(R.id.btn_start_slideshow)
 
-        findViewById<Button>(R.id.btn_back).setOnClickListener { navigateBack() }
-        findViewById<Button>(R.id.btn_start_slideshow).setOnClickListener { selectCurrent() }
+        // В свёрстанном дизайне (прототип 04) кнопки «Назад» нет — на уровень
+        // выше поднимает системная клавиша.
+        startButton.setOnClickListener { selectCurrent() }
     }
 
     override fun onResume() {
@@ -94,38 +108,92 @@ class FolderBrowserActivity : AppCompatActivity() {
     }
 
     private fun load() {
-        if (currentDir == null) {
-            roots = storageRoots()
-            pathView.text = getString(R.string.browser_root_title)
-            rows = roots.map { BrowserRow(it.second, RowKind.FOLDER, it.first) }
-        } else {
-            val dir = currentDir!!
-            pathView.text = dir.absolutePath
+        // Прототип 05: на время загрузки — спиннер «Загрузка…», список скрыт,
+        // кнопка слайдшоу недоступна и не принимает фокус.
+        loadingView.visibility = View.VISIBLE
+        grid.visibility = View.INVISIBLE
+        startButton.isEnabled = false
+        startButton.isFocusable = false
 
-            val children = (dir.listFiles() ?: emptyArray())
-                .filter { !MediaFileTypes.isIgnored(it.name) }
-            val folders = children.filter { it.isDirectory }.sortedBy { it.name.lowercase() }
-            val media = children
-                .filter { it.isFile && it.length() > 0L && (MediaFileTypes.isImage(it.name) || MediaFileTypes.isVideo(it.name)) }
-                .sortedBy { it.name.lowercase() }
+        // Поколение загрузки: быстрые клики по папкам — устаревший ответ
+        // не перебивает свежий (ревью: гонка «кто позже завершился»).
+        val gen = ++loadGeneration
 
-            val list = mutableListOf<BrowserRow>()
-            folders.forEach { list.add(BrowserRow(it.name, RowKind.FOLDER, it)) }
-            media.forEach {
-                list.add(
-                    BrowserRow(
-                        it.name,
-                        RowKind.MEDIA,
-                        isVideo = MediaFileTypes.isVideo(it.name),
-                        file = it
-                    )
-                )
+        val dir = currentDir
+        lifecycleScope.launch {
+            val newRows = withContext(Dispatchers.IO) { buildRows(dir) }
+            if (gen != loadGeneration) return@launch
+            rows = newRows
+            pathView.text =
+                if (dir == null) getString(R.string.browser_root_title) else dir.absolutePath
+            grid.adapter = BrowserListAdapter(lifecycleScope, newRows.map { it.toCard() }) { position ->
+                onEntryClick(position)
             }
-            rows = list
+            loadingView.visibility = View.GONE
+            grid.visibility = View.VISIBLE
+            startButton.isEnabled = true
+            startButton.isFocusable = true
+            startButton.requestFocus()
         }
-        grid.adapter = BrowserListAdapter(lifecycleScope, rows.map { it.toCard() }) { position ->
-            onEntryClick(position)
+    }
+
+    /** Чтение каталога/корней — вне UI-потока. */
+    private fun buildRows(dir: File?): List<BrowserRow> {
+        if (dir == null) {
+            roots = storageRoots()
+            // Для корней-дисков метаданные не считаем — счётчики нулевые (подписи нет).
+            return roots.map { BrowserRow(it.second, RowKind.FOLDER, it.first) }
         }
+        val children = dir.listFiles()
+        if (children == null) {
+            // Типично для USB без выданного доступа: listFiles() = null.
+            Log.w(TAG, "listFiles() = null: ${dir.absolutePath}, canRead=${dir.canRead()}")
+        }
+        val entries = children ?: emptyArray()
+        val folders = entries
+            .filter { !MediaFileTypes.isIgnored(it.name) && it.isDirectory }
+            .sortedBy { it.name.lowercase() }
+        val media = entries
+            .filter { it.isFile && it.length() > 0L && (MediaFileTypes.isImage(it.name) || MediaFileTypes.isVideo(it.name)) }
+            .sortedBy { it.name.lowercase() }
+
+        val list = mutableListOf<BrowserRow>()
+        folders.forEach { folder ->
+            // Метаданные папки (прототип 04): прямые дети — фото / видео / прочие файлы.
+            var photos = 0
+            var videos = 0
+            var files = 0
+            (folder.listFiles() ?: emptyArray()).forEach { child ->
+                if (MediaFileTypes.isIgnored(child.name)) return@forEach
+                when {
+                    child.isDirectory -> return@forEach
+                    MediaFileTypes.isImage(child.name) -> photos++
+                    MediaFileTypes.isVideo(child.name) -> videos++
+                    else -> files++
+                }
+            }
+            list.add(
+                BrowserRow(
+                    folder.name,
+                    RowKind.FOLDER,
+                    folder,
+                    photoCount = photos,
+                    videoCount = videos,
+                    fileCount = files
+                )
+            )
+        }
+        media.forEach {
+            list.add(
+                BrowserRow(
+                    it.name,
+                    RowKind.MEDIA,
+                    isVideo = MediaFileTypes.isVideo(it.name),
+                    file = it
+                )
+            )
+        }
+        return list
     }
 
     private fun onEntryClick(position: Int) {
@@ -192,18 +260,38 @@ class FolderBrowserActivity : AppCompatActivity() {
     }
 
     private fun BrowserRow.toCard(): GridCard = when (kind) {
-        RowKind.FOLDER -> GridCard(label, R.drawable.ic_folder)
+        RowKind.FOLDER -> GridCard(
+            label,
+            R.drawable.ic_folder,
+            subtitle = formatFolderMeta(photoCount, videoCount, fileCount),
+            isDir = true
+        )
+        // Справа — размер файла (прототип 04); «ФОТО»/«ВИДЕО» больше не пишем.
         RowKind.MEDIA -> GridCard(
             label,
             R.drawable.ic_photo,
-            R.color.text_secondary,
-            getString(if (isVideo) R.string.badge_video else R.string.badge_photo),
+            subtitle = BrowserListAdapter.formatSize(file?.length() ?: 0L),
             thumbFile = file,
             thumbIsVideo = isVideo
         )
     }
 
+    /**
+     * Подпись папки как в прототипе 04: «12 фото · 3 видео» (только ненулевые
+     * части), если медиафайлов нет, но есть прочие — «47 файлов», иначе null
+     * (подпись не показывается, например у пустой папки).
+     */
+    private fun formatFolderMeta(photoCount: Int, videoCount: Int, fileCount: Int): String? {
+        val parts = mutableListOf<String>()
+        if (photoCount > 0) parts.add(getString(R.string.browser_meta_photos, photoCount))
+        if (videoCount > 0) parts.add(getString(R.string.browser_meta_videos, videoCount))
+        if (photoCount + videoCount > 0) return parts.joinToString(" · ")
+        if (fileCount > 0) return getString(R.string.browser_meta_files, fileCount)
+        return null
+    }
+
     companion object {
+        private const val TAG = "FolderBrowser"
         const val EXTRA_FOLDER_PATH = "extra_folder_path"
     }
 }
@@ -216,5 +304,9 @@ private data class BrowserRow(
     val kind: RowKind,
     val target: File? = null,
     val isVideo: Boolean = false,
-    val file: File? = null
+    val file: File? = null,
+    /** Прямые дети папки (прототип 04): фото / видео / прочие файлы; для корней — нули. */
+    val photoCount: Int = 0,
+    val videoCount: Int = 0,
+    val fileCount: Int = 0
 )

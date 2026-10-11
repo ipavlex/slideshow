@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Главный экран: 10-foot UI.
-    Композиция (сверху вниз, вертикальный баланс через weight-спейсеры):
-      hero-шапка (логотип + заголовок/подзаголовок) → карточки-кнопки →
-      строка подсказок → подпись о форматах внизу.
-    Карточка — самодостаточная Button: иконка (drawableTop) и текст внутри,
-    высота фиксированная, поэтому колонки идеально выровнены.
-    Фокус D-pad: подсветка в bg_tv_button + масштаб в animator/scale_on_focus.
+    Главный экран (прототип 01): мелкий бренд слева сверху, ряд из трёх
+    плиток по центру (крупная иконка + название), внизу слева hint-бар пульта.
+    Вертикальный баланс — weight-спейсерами.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -20,147 +16,99 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <!-- Hero-шапка: логотип + текстовый lockup, по центру. -->
-    <LinearLayout
+    <!-- Бренд, слева сверху. -->
+    <TextView
+        android:id="@+id/brand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_gravity="center_horizontal">
-        <ImageView
-            android:layout_width="@dimen/icon_size_large"
-            android:layout_height="@dimen/icon_size_large"
-            android:src="@drawable/ic_photo_large"
-            android:contentDescription="@string/content_description_logo"/>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginStart="@dimen/medium_spacing"
-            android:gravity="center_horizontal">
-            <TextView
-                android:id="@+id/home_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                style="@style/TextAppearance.TvSlideshow.Title"/>
-            <TextView
-                android:id="@+id/home_subtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/home_subtitle"
-                android:textColor="@color/text_secondary"
-                android:textSize="@dimen/text_body"
-                style="@style/TextAppearance.TvSlideshow.Body"/>
-        </LinearLayout>
-    </LinearLayout>
+        android:text="@string/app_name"
+        style="@style/TextAppearance.TvSlideshow.Caption"/>
 
     <Space
         android:layout_width="match_parent"
         android:layout_height="@dimen/zero_size"
         android:layout_weight="1"/>
 
-    <!-- Карточки главного меню: равная ширина (weight), равная высота,
-         зазор 16dp между карточками через половинные margins (8+8). -->
+    <!-- Ряд плиток по центру: зазор tile_gap — marginEnd плиток, у последней зазора нет. -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:orientation="horizontal"
         android:clipChildren="false"
         android:clipToPadding="false">
 
-        <Button
+        <LinearLayout
             android:id="@+id/btn_local_folder"
-            android:layout_width="@dimen/zero_size"
-            android:layout_height="@dimen/menu_card_height"
-            android:layout_weight="1"
-            android:layout_marginEnd="@dimen/small_spacing"
-            android:background="@drawable/bg_tv_button"
-            android:drawableTop="@drawable/ic_folder_large"
-            android:drawablePadding="@dimen/medium_spacing"
-            android:gravity="center"
-            android:text="@string/local_folder"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_menu"
-            android:padding="@dimen/menu_item_padding"
-            android:focusable="true"
-            android:clickable="true"
-            android:stateListAnimator="@animator/scale_on_focus"/>
+            style="@style/Widget.TvSlideshow.Tile"
+            android:layout_width="@dimen/tile_width"
+            android:layout_height="@dimen/tile_height"
+            android:layout_marginEnd="@dimen/tile_gap">
+            <!-- Контурный «диск-стек» по прототипу 01 (была папка). -->
+            <ImageView
+                android:id="@+id/icon_local"
+                android:layout_width="@dimen/tile_icon"
+                android:layout_height="@dimen/tile_icon"
+                android:layout_gravity="start"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_storage_large"/>
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/zero_size"
+                android:layout_weight="1"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/local_folder"
+                style="@style/TextAppearance.TvSlideshow.TileTitle"/>
+        </LinearLayout>
 
-        <Button
+        <LinearLayout
             android:id="@+id/btn_yandex"
-            android:layout_width="@dimen/zero_size"
-            android:layout_height="@dimen/menu_card_height"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/small_spacing"
-            android:layout_marginEnd="@dimen/small_spacing"
-            android:background="@drawable/bg_tv_button"
-            android:drawableTop="@drawable/ic_cloud_large"
-            android:drawablePadding="@dimen/medium_spacing"
-            android:gravity="center"
-            android:text="@string/yandex_disk"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_menu"
-            android:padding="@dimen/menu_item_padding"
-            android:focusable="true"
-            android:clickable="true"
-            android:stateListAnimator="@animator/scale_on_focus"/>
+            style="@style/Widget.TvSlideshow.Tile"
+            android:layout_width="@dimen/tile_width"
+            android:layout_height="@dimen/tile_height"
+            android:layout_marginEnd="@dimen/tile_gap">
+            <ImageView
+                android:id="@+id/icon_yandex"
+                android:layout_width="@dimen/tile_icon"
+                android:layout_height="@dimen/tile_icon"
+                android:layout_gravity="start"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_cloud_large"/>
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/zero_size"
+                android:layout_weight="1"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/yandex_disk"
+                style="@style/TextAppearance.TvSlideshow.TileTitle"/>
+        </LinearLayout>
 
-        <Button
+        <LinearLayout
             android:id="@+id/btn_settings"
-            android:layout_width="@dimen/zero_size"
-            android:layout_height="@dimen/menu_card_height"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/small_spacing"
-            android:layout_marginEnd="@dimen/small_spacing"
-            android:background="@drawable/bg_tv_button"
-            android:drawableTop="@drawable/ic_settings_large"
-            android:drawablePadding="@dimen/medium_spacing"
-            android:gravity="center"
-            android:text="@string/settings"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/text_menu"
-            android:padding="@dimen/menu_item_padding"
-            android:focusable="true"
-            android:clickable="true"
-            android:stateListAnimator="@animator/scale_on_focus"/>
-    </LinearLayout>
-
-    <!-- Подсказки: margins/weight зеркалят ряд карточек — колонки совпадают. -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="@dimen/medium_spacing">
-        <TextView
-            android:id="@+id/local_folder_hint"
-            android:layout_width="@dimen/zero_size"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginEnd="@dimen/small_spacing"
-            android:gravity="center_horizontal"
-            android:text="@string/local_folder_subtitle"
-            style="@style/TextAppearance.TvSlideshow.Caption"/>
-        <TextView
-            android:id="@+id/yandex_hint"
-            android:layout_width="@dimen/zero_size"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/small_spacing"
-            android:layout_marginEnd="@dimen/small_spacing"
-            android:gravity="center_horizontal"
-            android:text="@string/yandex_subtitle"
-            style="@style/TextAppearance.TvSlideshow.Caption"/>
-        <TextView
-            android:id="@+id/settings_hint"
-            android:layout_width="@dimen/zero_size"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="@dimen/small_spacing"
-            android:layout_marginEnd="@dimen/small_spacing"
-            android:gravity="center_horizontal"
-            android:text="@string/settings_subtitle"
-            style="@style/TextAppearance.TvSlideshow.Caption"/>
+            style="@style/Widget.TvSlideshow.Tile"
+            android:layout_width="@dimen/tile_width"
+            android:layout_height="@dimen/tile_height">
+            <ImageView
+                android:id="@+id/icon_settings"
+                android:layout_width="@dimen/tile_icon"
+                android:layout_height="@dimen/tile_icon"
+                android:layout_gravity="start"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_settings_large"/>
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/zero_size"
+                android:layout_weight="1"/>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings"
+                style="@style/TextAppearance.TvSlideshow.TileTitle"/>
+        </LinearLayout>
     </LinearLayout>
 
     <Space

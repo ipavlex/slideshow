@@ -1,18 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Экран Яндекс.Диска (прототип 02): шапка как в локальном браузере
+    (крошка/путь над заголовком, ниже кнопка «Смотреть слайдшоу») и область
+    контента — плитки хаба / список браузера / панель ввода ссылки.
+    Hint-баров нет, возврат назад — системной клавишей.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:background="@color/background"
+    android:clipChildren="false" android:clipToPadding="false"
     android:paddingStart="@dimen/screen_padding_horizontal"
     android:paddingTop="@dimen/screen_padding_vertical"
     android:paddingEnd="@dimen/screen_padding_horizontal"
     android:paddingBottom="@dimen/screen_padding_vertical">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
-        <Button android:id="@+id/btn_back" android:layout_width="wrap_content" android:layout_height="@dimen/menu_item_height" android:background="@drawable/bg_tv_button" android:text="@string/back" android:textColor="@color/text_primary" android:textSize="@dimen/text_caption" android:paddingStart="@dimen/menu_item_padding" android:paddingEnd="@dimen/menu_item_padding" android:focusable="true"/>
-        <LinearLayout android:layout_width="@dimen/zero_size" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:paddingStart="@dimen/medium_spacing">
-            <TextView android:id="@+id/browser_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/yandex_browse_title" style="@style/TextAppearance.TvSlideshow.Title" />
-            <TextView android:id="@+id/browse_path" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/path_placeholder" android:textColor="@color/text_secondary" android:textSize="@dimen/text_caption" android:singleLine="true" android:ellipsize="start"/>
-        </LinearLayout>
-        <Button android:id="@+id/btn_start_slideshow" android:layout_width="wrap_content" android:layout_height="@dimen/menu_item_height" android:background="@drawable/bg_tv_button" android:text="@string/start_slideshow" android:textColor="@color/text_primary" android:textSize="@dimen/text_caption" android:paddingStart="@dimen/menu_item_padding" android:paddingEnd="@dimen/menu_item_padding" android:focusable="true"/>
+
+    <!-- Шапка как в локальном браузере: крошка, заголовок, ниже кнопка
+         запуска слайдшоу (видна только в режиме браузера).
+         Назад — системной клавишей, кнопки в шапке нет. -->
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView android:id="@+id/hub_breadcrumb"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/yandex_title"
+            style="@style/TextAppearance.TvSlideshow.Caption"/>
+        <TextView android:id="@+id/browser_title"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/small_spacing"
+            android:text="@string/source_chooser_title"
+            style="@style/TextAppearance.TvSlideshow.Title"/>
+        <TextView android:id="@+id/browse_path"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:textColor="@color/text_secondary"
+            style="@style/TextAppearance.TvSlideshow.Caption"
+            android:singleLine="true" android:ellipsize="start"/>
+        <Button android:id="@+id/btn_start_slideshow"
+            style="@style/Widget.TvSlideshow.Button"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/medium_spacing"
+            android:visibility="gone"
+            android:drawableStart="@drawable/ic_play_solid"
+            android:drawablePadding="@dimen/btn_icon_gap"
+            android:text="@string/start_slideshow"/>
     </LinearLayout>
-    <androidx.recyclerview.widget.RecyclerView android:id="@+id/browse_list" android:layout_width="match_parent" android:layout_height="@dimen/zero_size" android:layout_weight="1" android:clipToPadding="false" android:paddingBottom="@dimen/menu_item_padding" android:scrollbars="none" android:layout_marginTop="@dimen/section_spacing"/>
+
+    <!-- Контент: плитки хаба / список браузера / панель ввода ссылки.
+         clipChildren=false — рамка и масштаб фокуса не обрезаются. -->
+    <FrameLayout
+        android:id="@+id/browse_area"
+        android:layout_width="match_parent" android:layout_height="@dimen/zero_size"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/section_spacing"
+        android:clipChildren="false" android:clipToPadding="false">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/browse_list"
+            android:layout_width="match_parent" android:layout_height="match_parent"
+            android:clipChildren="false" android:clipToPadding="false"
+            android:paddingBottom="@dimen/menu_item_padding"
+            android:scrollbars="none"/>
+
+        <!-- Загрузка каталога (прототип 05): спиннер по центру области. -->
+        <LinearLayout android:id="@+id/browser_loading"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_gravity="center" android:orientation="horizontal"
+            android:gravity="center_vertical" android:visibility="gone">
+            <ProgressBar
+                android:layout_width="@dimen/icon_size_small" android:layout_height="@dimen/icon_size_small"
+                android:indeterminate="true" android:indeterminateTint="@color/text_primary"/>
+            <TextView
+                style="@style/TextAppearance.TvSlideshow.Caption"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/medium_spacing"
+                android:text="@string/loading"/>
+        </LinearLayout>
+
+        <!-- Панель ввода ссылки: карточка по центру, без кнопок. -->
+        <LinearLayout
+            android:id="@+id/link_panel"
+            android:layout_width="@dimen/login_card_width" android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="@drawable/link_card"
+            android:padding="@dimen/large_spacing">
+            <TextView
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/medium_spacing"
+                android:text="@string/link_label"
+                style="@style/TextAppearance.TvSlideshow.Caption"/>
+            <EditText
+                android:id="@+id/link_input"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:background="@drawable/bg_input"
+                android:padding="@dimen/menu_item_padding"
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/text_qr_code"
+                android:fontFamily="monospace"
+                android:inputType="textUri"
+                android:imeOptions="actionDone"
+                android:maxLines="1"
+                android:hint="@string/link_placeholder"/>
+            <TextView
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/small_spacing"
+                android:text="@string/link_example_a"
+                android:textColor="@color/text_disabled"
+                style="@style/TextAppearance.TvSlideshow.Caption"/>
+            <TextView
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/small_spacing"
+                android:text="@string/link_example_b"
+                android:textColor="@color/text_disabled"
+                style="@style/TextAppearance.TvSlideshow.Caption"/>
+        </LinearLayout>
+    </FrameLayout>
 </LinearLayout>

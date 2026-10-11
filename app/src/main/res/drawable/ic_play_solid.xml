@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Залитый ▶ для кнопки «Смотреть слайдшоу» (прототип 04, .btn svg). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/btn_play_icon" android:height="@dimen/btn_play_icon"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="@color/text_primary" android:pathData="M7,4.5v15l13,-7.5Z"/>
+</vector>

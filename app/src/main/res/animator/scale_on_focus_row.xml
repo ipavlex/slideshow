@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- D-pad фокус для СТРОК списков/настроек: масштаб 1.02 без подъёма
+     (прототип tv.css: .list-row:focus и .set-row:focus — scale(1.02);
+     подсветка фона — в селекторах bg_tv_row / settings_row_bg). -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Pressed-элемента нет намеренно: нажатая строка остаётся на этом же
+         элементе селектора, иначе stateListAnimator перезапускает анимацию
+         с valueFrom=1 — строка «схлопывается» при каждом нажатии ОК. -->
+    <item android:state_focused="true">
+        <set>
+            <objectAnimator android:propertyName="scaleX" android:valueFrom="1" android:valueTo="1.02"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+            <objectAnimator android:propertyName="scaleY" android:valueFrom="1" android:valueTo="1.02"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+        </set>
+    </item>
+    <item>
+        <set>
+            <objectAnimator android:propertyName="scaleX" android:valueFrom="1.02" android:valueTo="1"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+            <objectAnimator android:propertyName="scaleY" android:valueFrom="1.02" android:valueTo="1"
+                android:duration="150" android:interpolator="@android:interpolator/decelerate_quint"/>
+        </set>
+    </item>
+</selector>
