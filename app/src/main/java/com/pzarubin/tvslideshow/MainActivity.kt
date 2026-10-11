@@ -3,6 +3,7 @@ package com.pzarubin.tvslideshow
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.pzarubin.tvslideshow.data.auth.WebDavStore
@@ -62,8 +63,18 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        // Версия приложения — бейдж справа снизу главного экрана.
+        // BuildConfig выключен (ключей в сборке нет), поэтому берём из пакета.
+        findViewById<TextView>(R.id.version).text = appVersion()
+
         maybeAutostartLastFolder(savedInstanceState == null)
     }
+
+    /** Версия приложения (versionName) для бейджа в углу главного экрана. */
+    @Suppress("DEPRECATION")
+    private fun appVersion(): String =
+        runCatching { packageManager.getPackageInfo(packageName, 0).versionName }
+            .getOrNull().orEmpty()
 
     /**
      * Опция «Автозапуск последней папки»: при старте приложения сразу открыть

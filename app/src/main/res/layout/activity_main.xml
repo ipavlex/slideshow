@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Главный экран (прототип 01): мелкий бренд слева сверху, ряд из трёх
-    плиток по центру (крупная иконка + название), внизу слева hint-бар пульта.
-    Вертикальный баланс — weight-спейсерами.
+    плиток по центру (крупная иконка + название), версия приложения —
+    справа снизу тем же стилем, что и бренд. Вертикальный баланс —
+    weight-спейсерами.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background"
     android:paddingStart="@dimen/screen_padding_horizontal"
     android:paddingTop="@dimen/screen_padding_vertical"
@@ -16,103 +16,119 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <!-- Бренд, слева сверху. -->
-    <TextView
-        android:id="@+id/brand"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        style="@style/TextAppearance.TvSlideshow.Caption"/>
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/zero_size"
-        android:layout_weight="1"/>
-
-    <!-- Ряд плиток по центру: зазор tile_gap — marginEnd плиток, у последней зазора нет. -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
         android:clipChildren="false"
         android:clipToPadding="false">
 
+        <!-- Бренд, слева сверху. -->
+        <TextView
+            android:id="@+id/brand"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            style="@style/TextAppearance.TvSlideshow.Caption"/>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/zero_size"
+            android:layout_weight="1"/>
+
+        <!-- Ряд плиток по центру: зазор tile_gap — marginEnd плиток, у последней зазора нет. -->
         <LinearLayout
-            android:id="@+id/btn_local_folder"
-            style="@style/Widget.TvSlideshow.Tile"
-            android:layout_width="@dimen/tile_width"
-            android:layout_height="@dimen/tile_height"
-            android:layout_marginEnd="@dimen/tile_gap">
-            <!-- Контурный «диск-стек» по прототипу 01 (была папка). -->
-            <ImageView
-                android:id="@+id/icon_local"
-                android:layout_width="@dimen/tile_icon"
-                android:layout_height="@dimen/tile_icon"
-                android:layout_gravity="start"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_storage_large"/>
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/zero_size"
-                android:layout_weight="1"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/local_folder"
-                style="@style/TextAppearance.TvSlideshow.TileTitle"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <LinearLayout
+                android:id="@+id/btn_local_folder"
+                style="@style/Widget.TvSlideshow.Tile"
+                android:layout_width="@dimen/tile_width"
+                android:layout_height="@dimen/tile_height"
+                android:layout_marginEnd="@dimen/tile_gap">
+                <!-- Контурный «диск-стек» по прототипу 01 (была папка). -->
+                <ImageView
+                    android:id="@+id/icon_local"
+                    android:layout_width="@dimen/tile_icon"
+                    android:layout_height="@dimen/tile_icon"
+                    android:layout_gravity="start"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_storage_large"/>
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/zero_size"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/local_folder"
+                    style="@style/TextAppearance.TvSlideshow.TileTitle"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_yandex"
+                style="@style/Widget.TvSlideshow.Tile"
+                android:layout_width="@dimen/tile_width"
+                android:layout_height="@dimen/tile_height"
+                android:layout_marginEnd="@dimen/tile_gap">
+                <ImageView
+                    android:id="@+id/icon_yandex"
+                    android:layout_width="@dimen/tile_icon"
+                    android:layout_height="@dimen/tile_icon"
+                    android:layout_gravity="start"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_cloud_large"/>
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/zero_size"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/yandex_disk"
+                    style="@style/TextAppearance.TvSlideshow.TileTitle"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_settings"
+                style="@style/Widget.TvSlideshow.Tile"
+                android:layout_width="@dimen/tile_width"
+                android:layout_height="@dimen/tile_height">
+                <ImageView
+                    android:id="@+id/icon_settings"
+                    android:layout_width="@dimen/tile_icon"
+                    android:layout_height="@dimen/tile_icon"
+                    android:layout_gravity="start"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_settings_large"/>
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/zero_size"
+                    android:layout_weight="1"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings"
+                    style="@style/TextAppearance.TvSlideshow.TileTitle"/>
+            </LinearLayout>
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/btn_yandex"
-            style="@style/Widget.TvSlideshow.Tile"
-            android:layout_width="@dimen/tile_width"
-            android:layout_height="@dimen/tile_height"
-            android:layout_marginEnd="@dimen/tile_gap">
-            <ImageView
-                android:id="@+id/icon_yandex"
-                android:layout_width="@dimen/tile_icon"
-                android:layout_height="@dimen/tile_icon"
-                android:layout_gravity="start"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_cloud_large"/>
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/zero_size"
-                android:layout_weight="1"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/yandex_disk"
-                style="@style/TextAppearance.TvSlideshow.TileTitle"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/btn_settings"
-            style="@style/Widget.TvSlideshow.Tile"
-            android:layout_width="@dimen/tile_width"
-            android:layout_height="@dimen/tile_height">
-            <ImageView
-                android:id="@+id/icon_settings"
-                android:layout_width="@dimen/tile_icon"
-                android:layout_height="@dimen/tile_icon"
-                android:layout_gravity="start"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_settings_large"/>
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/zero_size"
-                android:layout_weight="1"/>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settings"
-                style="@style/TextAppearance.TvSlideshow.TileTitle"/>
-        </LinearLayout>
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/zero_size"
+            android:layout_weight="1"/>
     </LinearLayout>
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/zero_size"
-        android:layout_weight="1"/>
-</LinearLayout>
+    <!-- Версия приложения, справа снизу (тот же стиль, что у бренда). -->
+    <TextView
+        android:id="@+id/version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        style="@style/TextAppearance.TvSlideshow.Caption"/>
+</FrameLayout>
