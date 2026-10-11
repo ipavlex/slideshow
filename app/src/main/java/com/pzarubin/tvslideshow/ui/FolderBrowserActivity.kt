@@ -21,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pzarubin.tvslideshow.R
+import com.pzarubin.tvslideshow.data.settings.SettingsStore
 import com.pzarubin.tvslideshow.data.source.MediaFileTypes
 import com.pzarubin.tvslideshow.playback.Thumbnails
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +46,9 @@ class FolderBrowserActivity : AppCompatActivity() {
     private var currentDir: File? = null
     private var roots: List<Pair<File, String>> = emptyList()
     private var rows: List<BrowserRow> = emptyList()
+
+    /** Сохранённая папка восстанавливается один раз, при первом входе. */
+    private var restoredFromSettings = false
 
     /** Счётчик запусков [load] — для отбрасывания устаревших ответов. */
     private var loadGeneration = 0
@@ -73,7 +77,33 @@ class FolderBrowserActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (hasAccess()) load() else requestAccess()
+        if (hasAccess()) {
+            // П.7 «Помнить последнюю папку»: при первом входе открываем сохранённую
+            // папку (или ближайшего существующего родителя — например, если USB
+            // накопитель перемонтировался с другим путём), иначе корень.
+            if (currentDir == null && !restoredFromSettings) {
+                restoredFromSettings = true
+                currentDir = restoreLastFolder()
+            }
+            load()
+        } else requestAccess()
+    }
+
+    private fun restoreLastFolder(): File? {
+        val saved = SettingsStore(this).lastLocalFolder
+        if (saved.isBlank()) return null
+        var dir: File? = File(saved)
+        // Поднимаемся вверх, пока папка не станет существующей и читаемой
+        // (например, USB накопитель перемонтировался или отключён).
+        while (dir != null && (!dir.exists() || !dir.isDirectory || !dir.canRead())) {
+            dir = dir.parentFile
+        }
+        // Останавливаемся на уровне корней хранилищ: контейнеры вроде /storage
+        // или / не годятся как текущая папка — открываем корень браузера.
+        val candidate = dir ?: return null
+        val rootPaths = storageRoots().map { it.first.absolutePath }
+        if (candidate.absolutePath in rootPaths) return candidate
+        return if (parentOf(candidate) == null) null else candidate
     }
 
     private fun hasAccess(): Boolean =
@@ -120,6 +150,8 @@ class FolderBrowserActivity : AppCompatActivity() {
         val gen = ++loadGeneration
 
         val dir = currentDir
+        // П.7: запоминаем последнюю открытую папку при каждой навигации.
+        if (dir != null) SettingsStore(this).lastLocalFolder = dir.absolutePath
         lifecycleScope.launch {
             val newRows = withContext(Dispatchers.IO) { buildRows(dir) }
             if (gen != loadGeneration) return@launch
@@ -231,6 +263,8 @@ class FolderBrowserActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.browser_select_root_hint, Toast.LENGTH_SHORT).show()
             return
         }
+        // П.7: выбранная для слайдшоу папка — тоже «последняя открытая».
+        SettingsStore(this).lastLocalFolder = dir.absolutePath
         setResult(RESULT_OK, Intent().putExtra(EXTRA_FOLDER_PATH, dir.absolutePath))
         finish()
     }

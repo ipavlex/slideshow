@@ -68,4 +68,13 @@ class SettingsStore(context: Context) {
     var albumUrl: String
         get() = prefs.getString("album_url", "") ?: ""
         set(v) = prefs.edit().putString("album_url", v).apply()
+
+    /**
+     * Последняя открытая локальная папка (абсолютный путь). Браузер папок
+     * открывается сразу на ней (или на ближайшем существующем родителе),
+     * а не на корне; сохраняется при навигации и запуске слайдшоу.
+     */
+    var lastLocalFolder: String
+        get() = prefs.getString("last_local_folder", "") ?: ""
+        set(v) = prefs.edit().putString("last_local_folder", v).apply()
 }
