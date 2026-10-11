@@ -200,7 +200,8 @@ IDLE → LOADING → PLAYING ⇄ PAUSED → (END/LOOP)
 
 - **Gradle Kotlin DSL**, один модуль `app`.
 - `minSdk 28`, `targetSdk 34`, `compileSdk 34`.
-- Release-подпись: debug-ключ для sideload; позже — собственный keystore.
+- Release-подпись: собственный keystore `app/keystore/tvslideshow-release.jks`
+  (параметры в `app/secrets.properties`, gitignored); без конфига — фолбэк на debug-ключ.
 - `buildTypes.release { minifyEnabled true (R8) }`.
 - Целевая команда: `./gradlew assembleRelease` → `app/build/outputs/apk/release/tvslideshow-<версия>.apk` (имя формируется из названия проекта и `versionName`).
 - Флаг `android.leanback` + `LEANBACK_LAUNCHER` intent-filter, `android.hardware.touchscreen` not required.

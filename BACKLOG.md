@@ -87,4 +87,7 @@
 
 ## Собственная релизная подпись
 
-Сейчас release подписан debug-ключом. Для публикации — завести собственный keystore и вынести подпись из `build.gradle.kts`.
+Сделано: keystore `app/keystore/tvslideshow-release.jks` (RSA 4096, 10000 дней),
+пароли и путь — в `app/secrets.properties` (`RELEASE_*`, файл не в git).
+`build.gradle.kts` подключает подпись автоматически; без конфига — фолбэк на
+debug-ключ. APK с новой подписью не обновляется поверх debug-версии — переустановка.

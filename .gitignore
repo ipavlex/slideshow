@@ -22,3 +22,6 @@ captures/
 # Дизайн-хендоффы (содержимое уже применено в app/src/main/res)
 /design-handoff/
 /tv_slideshow_res/
+
+# Релизный keystore (пароли в app/secrets.properties)
+app/keystore/

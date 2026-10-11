@@ -14,6 +14,16 @@ val secrets = Properties().apply {
 val yandexClientId = secrets.getProperty("YANDEX_CLIENT_ID", "")
 val yandexClientSecret = secrets.getProperty("YANDEX_CLIENT_SECRET", "")
 
+// Релизная подпись: параметры в app/secrets.properties (не в git).
+// Если конфига нет — release подписывается debug-ключом (sideload-сборка).
+val releaseStoreFile = secrets.getProperty("RELEASE_STORE_FILE", "")
+val releaseStorePassword = secrets.getProperty("RELEASE_STORE_PASSWORD", "")
+val releaseKeyAlias = secrets.getProperty("RELEASE_KEY_ALIAS", "")
+val releaseKeyPassword = secrets.getProperty("RELEASE_KEY_PASSWORD", "")
+val hasReleaseSigning = listOf(
+    releaseStoreFile, releaseStorePassword, releaseKeyAlias, releaseKeyPassword
+).all { it.isNotBlank() }
+
 // Имя приложения (slug) и версия — используются в имени APK.
 val appName = "tvslideshow"
 val appVersionName = "0.9.27"
@@ -50,6 +60,17 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -58,8 +79,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Sideload: подписываем release тем же debug-ключом для удобной установки.
-            signingConfig = signingConfigs.getByName("debug")
+            // Собственная релизная подпись, при её отсутствии — debug-ключ
+            // (sideload-сборка для установки по adb).
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 

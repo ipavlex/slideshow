@@ -67,7 +67,7 @@ confidential (например, тип «Для доступа к API или о�
 
 ```bash
 ./gradlew assembleDebug      # отладочный APK
-./gradlew assembleRelease    # release-APK (подписан debug-ключом для sideload)
+./gradlew assembleRelease    # release-APK (собственная подпись, см. ниже)
 ```
 
 Если системной Java нет (macOS + Homebrew), путь к JDK задаётся переменной:
@@ -93,8 +93,27 @@ adb devices                             # статус: device
 adb -s 192.168.0.130:5555 install -r app/build/outputs/apk/release/tvslideshow-<версия>.apk
 ```
 
-`-r` — переустановка поверх с сохранением данных (тот же debug-ключ подписи).
+`-r` — переустановка поверх с сохранением данных (та же подпись). При смене
+подписи (например, с debug-ключа на релизный keystore) нужен `adb uninstall`
+перед установкой — данные приложения при этом сбрасываются.
 Альтернатива: скопировать APK на устройство (USB/флешка) и установить вручную.
+
+### Релизная подпись
+
+Release подписывается собственным keystore `app/keystore/tvslideshow-release.jks`
+(RSA 4096, срок 10000 дней). Параметры — в `app/secrets.properties` (gitignored):
+
+```properties
+RELEASE_STORE_FILE=keystore/tvslideshow-release.jks
+RELEASE_STORE_PASSWORD=…
+RELEASE_KEY_ALIAS=tvslideshow
+RELEASE_KEY_PASSWORD=…
+```
+
+`build.gradle.kts` подключает подпись автоматически; если конфига нет
+(например, у другого разработчика), release подписывается debug-ключом.
+Keystore и пароли не коммитятся — храните резервную копию: потеря ключа
+лишает возможности обновлять приложение поверх установленного.
 
 ## Структура проекта
 
