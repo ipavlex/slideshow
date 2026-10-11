@@ -216,7 +216,7 @@ class SlideshowActivity : AppCompatActivity() {
                 val startIndex = resolveResumeIndex(items)
                 if (startIndex > 0) {
                     withContext(Dispatchers.Main) {
-                        askResume(startIndex) { startSlideshow(items, it) }
+                        askResume(startIndex, items.size) { startSlideshow(items, it) }
                     }
                 } else {
                     startSlideshow(items)
@@ -278,10 +278,13 @@ class SlideshowActivity : AppCompatActivity() {
     }
 
     /** Диалог «Продолжить / С начала» при наличии сохранённой позиции (прототип 06). */
-    private fun askResume(startIndex: Int, onStart: (Int) -> Unit) {
+    private fun askResume(startIndex: Int, count: Int, onStart: (Int) -> Unit) {
         // Обёртка-FrameLayout нужна, чтобы сохранились layout-параметры корня
         // dialog_resume (ширина alert_width, гравитация center).
         val view = layoutInflater.inflate(R.layout.dialog_resume, FrameLayout(this), false)
+        // Текст задаётся кодом: в layout нельзя подставить аргументы форматной строки.
+        view.findViewById<TextView>(R.id.resume_message).text =
+            getString(R.string.resume_message, startIndex + 1, count)
         val dialog = AlertDialog.Builder(this)
             .setView(view)
             .setOnCancelListener { finish() }
