@@ -186,7 +186,13 @@ class FolderBrowserActivity : AppCompatActivity() {
             .filter { !MediaFileTypes.isIgnored(it.name) && it.isDirectory }
             .sortedBy { it.name.lowercase() }
         val media = entries
-            .filter { it.isFile && it.length() > 0L && (MediaFileTypes.isImage(it.name) || MediaFileTypes.isVideo(it.name)) }
+            .filter {
+                // Скрытые/служебные файлы macOS (._*.HEIC и т.п.) имеют
+                // «настоящее» расширение и иначе проходят проверку медиа-типа.
+                !MediaFileTypes.isIgnored(it.name) &&
+                    it.isFile && it.length() > 0L &&
+                    (MediaFileTypes.isImage(it.name) || MediaFileTypes.isVideo(it.name))
+            }
             .sortedBy { it.name.lowercase() }
 
         val list = mutableListOf<BrowserRow>()

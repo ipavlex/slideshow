@@ -20,6 +20,7 @@ import com.pzarubin.tvslideshow.R
 import com.pzarubin.tvslideshow.data.auth.TokenStore
 import com.pzarubin.tvslideshow.data.cache.SlideCache
 import com.pzarubin.tvslideshow.data.settings.SettingsStore
+import com.pzarubin.tvslideshow.data.source.MediaFileTypes
 import com.pzarubin.tvslideshow.data.source.YandexClient
 import com.pzarubin.tvslideshow.data.source.YandexPublicAlbum
 import kotlinx.coroutines.launch
@@ -155,7 +156,7 @@ class YandexBrowseActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 entries = client.listEntries(currentPath)
-                    .filter { it.isDir || it.mediaType == "image" }
+                    .filter { (it.isDir || it.mediaType == "image") && !MediaFileTypes.isIgnored(it.name) }
                     .sortedWith(
                         compareBy<YandexClient.Entry> { !it.isDir }
                             .thenBy { it.name.lowercase() }

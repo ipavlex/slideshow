@@ -13,7 +13,7 @@ class YandexDiskSource(
 
     override suspend fun list(): List<MediaItem> =
         client.listEntries(folderPath)
-            .filter { !it.isDir }
+            .filter { !it.isDir && !MediaFileTypes.isIgnored(it.name) }
             .filter { isPhoto(it) || isVideo(it) }
             .sortedBy { it.name.lowercase() }
             .map { e ->
