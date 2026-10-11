@@ -77,7 +77,9 @@
 
     <!-- Логин -->
     <dimen name="login_code_text">54sp</dimen>
-    <dimen name="login_card_width">580dp</dimen>
+    <!-- Ширина карточки логина: код «XXXX-XXXX» (54sp monospace) должен
+         помещаться в правую колонку одной строкой — без переноса символов. -->
+    <dimen name="login_card_width">720dp</dimen>
     <dimen name="login_code_gap">20dp</dimen>
     <dimen name="qr_size">160dp</dimen>
     <dimen name="qr_card_padding">12dp</dimen>

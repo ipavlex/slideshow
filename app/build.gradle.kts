@@ -26,8 +26,8 @@ val hasReleaseSigning = listOf(
 
 // Имя приложения (slug) и версия — используются в имени APK.
 val appName = "tvslideshow"
-val appVersionName = "0.9.27"
-val appVersionCode = 38
+val appVersionName = "0.9.28"
+val appVersionCode = 39
 
 android {
     namespace = "com.pzarubin.tvslideshow"

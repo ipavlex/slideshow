@@ -60,7 +60,8 @@ object YandexAuth {
                 val json = JSONObject(resp.body?.string() ?: "")
                 if (!resp.isSuccessful) {
                     throw IOException(
-                        json.optString("error_description", "Ошибка запроса кода")
+                        if (resp.code == 429) "Слишком много запросов кода — подождите минуту и нажмите «Проверить»"
+                        else json.optString("error_description", "Ошибка запроса кода")
                     )
                 }
                 DeviceCode(
@@ -95,11 +96,15 @@ object YandexAuth {
                         )
                     )
                 } else {
-                    when (json.optString("error", "")) {
-                        "authorization_pending" -> PollResult.Pending
-                        "slow_down" -> PollResult.SlowDown
-                        "access_denied" -> PollResult.Denied
-                        "expired_token" -> PollResult.Expired
+                    when {
+                        // Rate limit — не сессия, а временный отказ: опрос продолжится
+                        // с увеличенным интервалом (см. SlowDown в YandexLoginActivity).
+                        resp.code == 429 || json.optString("error", "") == "too_many_requests" ->
+                            PollResult.SlowDown
+                        json.optString("error", "") == "authorization_pending" -> PollResult.Pending
+                        json.optString("error", "") == "slow_down" -> PollResult.SlowDown
+                        json.optString("error", "") == "access_denied" -> PollResult.Denied
+                        json.optString("error", "") == "expired_token" -> PollResult.Expired
                         else -> PollResult.Error(
                             json.optString("error_description", "Ошибка авторизации")
                         )

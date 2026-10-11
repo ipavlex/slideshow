@@ -48,7 +48,6 @@ class YandexLoginActivity : AppCompatActivity() {
         progressView = findViewById(R.id.login_progress)
         tokenStore = TokenStore(this)
 
-        findViewById<Button>(R.id.btn_login_back).setOnClickListener { finish() }
         findViewById<Button>(R.id.btn_login_retry).setOnClickListener { startAuth() }
 
         startAuth()
@@ -85,7 +84,12 @@ class YandexLoginActivity : AppCompatActivity() {
                             return@launch
                         }
                         YandexAuth.PollResult.Pending -> Unit
-                        YandexAuth.PollResult.SlowDown -> interval += 1
+                        // RFC 8628: при slow_down / 429 интервал растёт на 5 секунд,
+                        // опрос не прерывается — код на ya.ru/device остаётся живым.
+                        YandexAuth.PollResult.SlowDown -> {
+                            interval += 5
+                            statusView.text = getString(R.string.yandex_slow_down)
+                        }
                         YandexAuth.PollResult.Denied -> {
                             statusView.text = getString(R.string.yandex_denied)
                             progressView.visibility = View.GONE

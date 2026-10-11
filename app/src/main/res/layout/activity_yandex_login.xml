@@ -2,7 +2,7 @@
 <!--
     Вход в Яндекс.Диск (прототип 03): карточка по центру из двух колонок —
     слева QR на белой плашке + адрес, справа инструкция, код подтверждения,
-    статус ожидания со спиннером. Внизу — hint «Назад — отмена».
+    статус ожидания со спиннером. Выход — системная клавиша «Назад».
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
@@ -74,6 +74,7 @@
                 style="@style/TextAppearance.TvSlideshow.Body"/>
             <TextView android:id="@+id/login_code"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:maxLines="1"
                 android:textColor="@color/text_primary"
                 android:textSize="@dimen/login_code_text"
                 android:textStyle="bold"
@@ -104,15 +105,4 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/zero_size"
         android:layout_weight="1"/>
-
-    <!-- Низ: рабочая кнопка «Назад» справа (hint-подсказки пульта убраны). -->
-    <RelativeLayout
-        android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/medium_spacing">
-        <Button android:id="@+id/btn_login_back"
-            android:layout_width="wrap_content" android:layout_height="@dimen/menu_item_height"
-            android:layout_alignParentEnd="true" android:layout_centerVertical="true"
-            android:text="@string/back" android:textSize="@dimen/text_caption"
-            android:focusable="true" android:clickable="true"/>
-    </RelativeLayout>
 </LinearLayout>

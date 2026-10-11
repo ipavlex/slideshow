@@ -83,6 +83,7 @@
     <string name="yandex_qr_hint">QR-код для входа</string>
     <string name="yandex_requesting">Получение кода…</string>
     <string name="yandex_waiting">Ожидание подтверждения…</string>
+    <string name="yandex_slow_down">Слишком часто проверяем, ждём подольше…</string>
     <string name="yandex_success">Авторизовано!</string>
     <string name="yandex_denied">Доступ отклонён</string>
     <string name="yandex_expired">Код истёк, попробуйте ещё раз</string>
