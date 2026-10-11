@@ -48,7 +48,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
-import kotlin.math.abs
 
 /**
  * Полноэкранное слайдшоу (фото и видео) с OSD-оверлеем и MediaSession.
@@ -98,9 +97,6 @@ class SlideshowActivity : AppCompatActivity() {
     private val osdHideRunnable = Runnable { hideOsd() }
     private val speedHudHideRunnable = Runnable { osdSpeedHud.visibility = View.GONE }
 
-    /** Индекс в [SPEED_INTERVALS_SEC] — интервал смены слайдов. */
-    private var speedIndex = DEFAULT_SPEED_INDEX
-
     /** Контекст источника для osd_title (папка/альбом, прототип 08). */
     private lateinit var osdContext: String
 
@@ -141,13 +137,9 @@ class SlideshowActivity : AppCompatActivity() {
         }
 
         mode = settings.mode
+        // Базовая длительность показа фото; пультом ↑/↓ меняется множитель
+        // скорости (engine.speedMultiplier). «Авто» (0) — режим по умолчанию.
         photoDuration = settings.photoDurationMs.takeIf { it > 0L } ?: mode.photoDurationMs
-        // Интервал смены слайдов сводим к набору 5/10/15/20/30 сек (DESIGN.md §08):
-        // настройка setting_duration задаёт стартовую точку, дальше — пультом ↑/↓.
-        speedIndex = SPEED_INTERVALS_SEC.indices.minByOrNull {
-            abs(SPEED_INTERVALS_SEC[it] * 1000L - photoDuration)
-        } ?: DEFAULT_SPEED_INDEX
-        photoDuration = SPEED_INTERVALS_SEC[speedIndex] * 1000L
         osdEnabled = settings.showOsd
         loopEnabled = settings.loop
         sourceKey = buildSourceKey(sourceType, albumUrl, albumIds)
@@ -269,6 +261,8 @@ class SlideshowActivity : AppCompatActivity() {
             }
             // Отклик на нажатие даже при выключенной плашке.
             showOsd(force = true)
+            osdSpeedHudText.text = getString(R.string.speed_value, formatSpeed(speed))
+            showSpeedHud()
         }
         engine.start(startIndex)
     }
@@ -475,9 +469,9 @@ class SlideshowActivity : AppCompatActivity() {
         return when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> { e.previous(); true }
             KeyEvent.KEYCODE_DPAD_RIGHT -> { e.next(); true }
-            // ↑ — быстрее (короче интервал), ↓ — медленнее (DESIGN.md §3).
-            KeyEvent.KEYCODE_DPAD_UP -> { changeSpeed(faster = true); true }
-            KeyEvent.KEYCODE_DPAD_DOWN -> { changeSpeed(faster = false); true }
+            // ↑ — быстрее, ↓ — медленнее (множитель скорости).
+            KeyEvent.KEYCODE_DPAD_UP -> { e.speedUp(); true }
+            KeyEvent.KEYCODE_DPAD_DOWN -> { e.speedDown(); true }
             KeyEvent.KEYCODE_DPAD_CENTER,
             KeyEvent.KEYCODE_SPACE,
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> { e.toggle(); true }
@@ -507,38 +501,9 @@ class SlideshowActivity : AppCompatActivity() {
         }
     }
 
-    // --- Управление с пульта (прототип 08: кнопок на экране нет) ---
+    // --- Управление с пультом (прототип 08: кнопок на экране нет) ---
 
-    /** ↑ — быстрее, ↓ — медленнее. Набор интервалов: 5/10/15/20/30 сек. */
-    private fun changeSpeed(faster: Boolean) {
-        val next = if (faster) speedIndex - 1 else speedIndex + 1
-        if (next !in SPEED_INTERVALS_SEC.indices) return
-        speedIndex = next
-        val seconds = SPEED_INTERVALS_SEC[speedIndex]
-        photoDuration = seconds * 1000L
-        applyIntervalToEngine()
-        val text = getString(R.string.osd_speed_seconds, seconds)
-        osdSpeed.text = text
-        osdSpeedHudText.text = text
-        showOsd(force = true)
-        showSpeedHud()
-    }
-
-    /**
-     * Применяет новый интервал к [SlideshowEngine]: таймер текущего слайда
-     * перезапускается на полную длительность — как restartTimer в прототипе.
-     * Только для фото: у видео своего таймера нет, а pause/resize замирал
-     * бы кадром (ревью). В паузе интервал применится при продолжении показа.
-     */
-    private fun applyIntervalToEngine() {
-        val e = engine ?: return
-        if (e.state != SlideshowEngine.State.PLAYING) return
-        if (currentItem?.kind == MediaItem.Kind.VIDEO) return
-        e.pause()
-        e.resume()
-    }
-
-    /** HUD скорости по центру: «Скорость: N сек», скрывается через 1,5 сек. */
+    /** HUD скорости по центру: «Скорость: N×», скрывается через 1,5 сек. */
     private fun showSpeedHud() {
         osdHideHandler.removeCallbacks(speedHudHideRunnable)
         osdSpeedHud.visibility = View.VISIBLE
@@ -572,7 +537,7 @@ class SlideshowActivity : AppCompatActivity() {
         osdTitle.text = osdContext
         osdTime.text = currentItem?.name ?: ""
         osdCounter.text = getString(R.string.osd_counter, e.currentIndex + 1, e.count)
-        osdSpeed.text = getString(R.string.osd_speed_seconds, SPEED_INTERVALS_SEC[speedIndex])
+        osdSpeed.text = getString(R.string.speed_value, formatSpeed(e.speedMultiplier))
         if (e.state == SlideshowEngine.State.PAUSED) {
             osdState.text = getString(R.string.osd_paused)
             osdState.visibility = View.VISIBLE
@@ -585,6 +550,11 @@ class SlideshowActivity : AppCompatActivity() {
         } else {
             0
         }
+    }
+
+    /** Множитель без лишнего нуля: целые (1, 2) — без дробной части. */
+    private fun formatSpeed(v: Float): String {
+        return if (v == v.toLong().toFloat()) v.toLong().toString() else v.toString()
     }
 
     @Suppress("DEPRECATION")
@@ -626,12 +596,6 @@ class SlideshowActivity : AppCompatActivity() {
         const val SEEK_STEP_MS = 10_000L
         const val OSD_TIMEOUT_MS = 3000L
         const val SPEED_HUD_TIMEOUT_MS = 1500L
-
-        /** Интервалы смены слайдов, сек (DESIGN.md §08). */
-        val SPEED_INTERVALS_SEC = intArrayOf(5, 10, 15, 20, 30)
-
-        /** Стартовый индекс интервала — 10 сек, как в прототипе. */
-        const val DEFAULT_SPEED_INDEX = 1
 
         /** Максимум шкалы osd_progress (позиция в папке). */
         const val PROGRESS_MAX = 10_000

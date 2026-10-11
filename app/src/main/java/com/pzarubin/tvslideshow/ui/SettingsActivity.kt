@@ -24,15 +24,15 @@ import kotlin.math.abs
  * Значения сохраняются в SettingsStore сразу при изменении.
  *
  * Строки: анимация (сегмент Кен Бёрнс/Классика), скорость слайда (степпер
- * 3–60 сек), зациклить, сортировка (Имя/Дата изменения), случайный порядок,
+ * Авто/3–15 сек), зациклить, сортировка (Имя/Дата изменения), случайный порядок,
  * имя файла на экране (OSD), автозапуск последней папки, вложенные папки.
  */
 class SettingsActivity : AppCompatActivity() {
 
     private lateinit var settings: SettingsStore
 
-    /** Шаги «Скорости слайда», сек (прототип 07, диапазон 3–60). */
-    private val durationSteps = listOf(3L, 5L, 10L, 15L, 20L, 30L, 45L, 60L)
+    /** Шаги «Скорости слайда», сек; 0 — «Авто» (режим по умолчанию). */
+    private val durationSteps = listOf(0L, 3L, 5L, 7L, 10L, 15L)
 
     // Контролы строк.
     private lateinit var segModeKb: TextView
@@ -147,7 +147,7 @@ class SettingsActivity : AppCompatActivity() {
         refreshMode()
     }
 
-    // --- Скорость слайда: степпер, диапазон шагов 3–60 сек ---
+    // --- Скорость слайда: степпер, шаги Авто/3/5/7/10/15 сек ---
 
     private fun stepDuration(dir: Int) {
         // Края диапазона не закольцовываются (как в прототипе).
@@ -156,14 +156,9 @@ class SettingsActivity : AppCompatActivity() {
         refreshDuration()
     }
 
-    /**
-     * Текущий шаг степпера. Старое «Авто» (0 мс) и прочие legacy-значения
-     * (например 7 с из прежнего списка) маппятся: «Авто» — на значение
-     * по умолчанию прототипа (10 сек), остальное — на ближайший шаг.
-     */
+    /** Текущий шаг степпера; прочие legacy-значения — на ближайший шаг. */
     private fun durationIndex(): Int {
         val ms = settings.photoDurationMs
-        if (ms <= 0L) return DEFAULT_DURATION_INDEX
         durationSteps.indexOfFirst { it * 1000L == ms }.takeIf { it >= 0 }?.let { return it }
         return durationSteps.indices.minByOrNull { abs(durationSteps[it] * 1000L - ms) }
             ?: DEFAULT_DURATION_INDEX
@@ -209,12 +204,17 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun refreshDuration() {
-        tvDuration.text = getString(R.string.duration_seconds, durationSteps[durationIndex()])
+        val step = durationSteps[durationIndex()]
+        tvDuration.text = if (step == 0L) {
+            getString(R.string.duration_auto)
+        } else {
+            getString(R.string.duration_seconds, step)
+        }
     }
 
     private companion object {
-        /** Индекс шага по умолчанию — 10 сек (значение прототипа 07). */
-        const val DEFAULT_DURATION_INDEX = 2
+        /** Fallback для legacy-значений — 10 сек. */
+        const val DEFAULT_DURATION_INDEX = 4
         val MODE_INDICES = 0..1
         const val MINUS = "−"
         const val PLUS = "+"

@@ -175,7 +175,6 @@
 
     <!-- OSD слайдшоу -->
     <string name="osd_hints">← → слайд · ↑ ↓ скорость · ОК — пауза · Назад — выход</string>
-    <string name="osd_speed_seconds">Скорость: %1$d сек</string>
 
     <!-- Настройки: подписи согласованного экрана -->
     <string name="settings_animation_label">Анимация</string>
